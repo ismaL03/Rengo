@@ -8,7 +8,12 @@
   <meta name="color-scheme" content="light dark">
   <link rel="icon" href="assets/icone.png" media="(prefers-color-scheme: light)">
   <link rel="icon" href="assets/icone-sombre.png" media="(prefers-color-scheme: dark)">
-  <link rel="apple-touch-icon" href="assets/icone.png">
+  <link rel="apple-touch-icon" href="assets/icone-180.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Tirelires">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <script>
     // Thème choisi (auto / clair / sombre) appliqué avant l'affichage pour éviter un flash
     try { const t = localStorage.getItem('rengo-theme'); if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t; } catch {}
@@ -193,7 +198,8 @@
     .bandeau { display: flex; align-items: center; gap: 12px; padding: 12px 14px; margin-bottom: 10px; background: var(--primaire-doux); border: 1px solid color-mix(in srgb, var(--primaire) 25%, transparent); border-radius: 12px; font-size: 14px; }
     .bandeau .i { color: var(--primaire); }
     .bandeau .espace { flex: 1; }
-    @media (max-width: 520px) { .bandeau { flex-wrap: wrap; } .bandeau .btn { width: 100%; } }
+    .bandeau .btn.carre { order: 3; }
+    @media (max-width: 520px) { .bandeau { flex-wrap: wrap; } .bandeau .btn.carre { order: 0; } .bandeau .btn:not(.carre) { width: 100%; order: 4; } }
 
     .fiche { position: relative; padding: 14px 14px 12px 18px; margin-bottom: 8px; background: var(--surface); border: 1px solid var(--bord); border-radius: 12px; transition: border-color .15s; }
     .fiche::before { content: ""; position: absolute; left: -1px; top: 12px; bottom: 12px; width: 4px; border-radius: 0 4px 4px 0; background: var(--c); }
@@ -270,6 +276,24 @@
     .etapes-loc { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; font-size: 14px; }
     .etapes-loc li { display: flex; gap: 10px; align-items: flex-start; }
     .etapes-loc .i { margin-top: 1px; color: var(--primaire); }
+    /* ---------- Tutoriel & installation ---------- */
+    .faux { pointer-events: none; height: 28px; padding: 0 9px; margin: 0 2px; vertical-align: middle; font-size: 13px; }
+    .faux.carre { width: 28px; padding: 0; }
+    .illustration-tuto { width: 56px; height: 56px; margin: 8px auto 12px; display: grid; place-items: center; border-radius: 16px; background: var(--primaire-doux); color: var(--primaire); }
+    .illustration-tuto .i { width: 28px; height: 28px; }
+    .titre-tuto { text-align: center; font-size: 19px; margin: 0 0 10px; }
+    .texte-tuto { font-size: 15px; line-height: 1.6; }
+    .texte-tuto p { margin: 0 0 10px; }
+    .legende-tuto { list-style: none; padding: 0; margin: 0 0 12px; display: grid; gap: 8px; }
+    .legende-tuto li { display: flex; align-items: center; gap: 10px; }
+    .pas { list-style: none; padding: 0; margin: 0 0 6px; display: grid; gap: 14px; }
+    .pas li { display: flex; gap: 12px; align-items: flex-start; line-height: 1.6; }
+    .pas .num { flex-shrink: 0; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; background: var(--primaire-doux); color: var(--primaire); font-weight: 600; font-size: 13px; line-height: 1; }
+    .points-tuto { display: flex; justify-content: center; gap: 6px; padding: 4px 0 2px; }
+    .points-tuto span { width: 6px; height: 6px; border-radius: 3px; background: var(--bord-fort); transition: width .2s, background-color .2s; }
+    .points-tuto span.actif { width: 18px; background: var(--primaire); }
+    .compteur-tuto { font-size: 13px; color: var(--doux); font-variant-numeric: tabular-nums; }
+
     @keyframes fondu { from { opacity: 0; } }
     @keyframes glisse { from { transform: translateY(40px); opacity: .4; } }
     @keyframes apparait { from { transform: translateY(8px) scale(.985); opacity: 0; } }
@@ -307,6 +331,12 @@
     <symbol id="i-ville" viewBox="0 0 24 24"><path d="M3 21h18M5 21V8l6-4v17M11 21V10l8 3v8M8 11v.01M8 15v.01M15 15v.01M15 18v.01"/></symbol>
     <symbol id="i-annuler" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></symbol>
     <symbol id="i-alerte" viewBox="0 0 24 24"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0zM12 9v4M12 17h.01"/></symbol>
+    <symbol id="i-partager" viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v13"/></symbol>
+    <symbol id="i-ajout-carre" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M12 8v8M8 12h8"/></symbol>
+    <symbol id="i-telecharger" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></symbol>
+    <symbol id="i-menu" viewBox="0 0 24 24"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></symbol>
+    <symbol id="i-telephone" viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="2.5"/><path d="M11 18h2"/></symbol>
+    <symbol id="i-aide" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3M12 17h.01"/></symbol>
     <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 16v-4M12 8h.01"/></symbol>
   </svg>
 
@@ -365,6 +395,7 @@
             </select>
             <select id="filtreVille" aria-label="Ville"><option value="">Toutes les villes</option></select>
           </div>
+          <div id="bandeauInstallation"></div>
           <div id="bandeauLocalisation"></div>
           <div class="barre-liste">
             <span class="compteur" id="compteur"></span>
@@ -562,6 +593,12 @@
         <div class="apercu-seuils" id="apercuSeuils"></div>
         <div id="erreurParametres" class="erreur" role="alert"></div>
 
+        <div class="section">Aide</div>
+        <div class="choix-groupe" style="grid-template-columns:repeat(auto-fit, minmax(150px, 1fr));margin-top:10px">
+          <button type="button" class="btn secondaire" id="btnAideTutoriel"><svg class="i"><use href="#i-aide"/></svg>Revoir le guide</button>
+          <button type="button" class="btn secondaire" id="btnAideInstaller"><svg class="i"><use href="#i-telephone"/></svg>Installer</button>
+        </div>
+
         <div class="section">Compte</div>
         <button type="button" class="btn secondaire" id="btnDeconnexion" style="width:100%;margin-top:10px"><svg class="i"><use href="#i-sortie"/></svg>Se déconnecter de cet appareil</button>
       </div>
@@ -571,6 +608,35 @@
         <button class="btn">Enregistrer</button>
       </div>
     </form>
+  </div>
+
+  <!-- ================= Fenêtre : tutoriel ================= -->
+  <div class="voile cache" id="fenetreTuto" role="dialog" aria-modal="true" aria-labelledby="tutoTitre">
+    <div class="fenetre" style="max-width:440px">
+      <div class="tete">
+        <span class="compteur-tuto" id="tutoCompteur"></span>
+        <button type="button" class="btn discret carre" data-fermer aria-label="Fermer le guide"><svg class="i"><use href="#i-x"/></svg></button>
+      </div>
+      <div class="corps" id="tutoCorps" style="min-height:300px"></div>
+      <div class="points-tuto" id="tutoPoints"></div>
+      <div class="pied">
+        <button type="button" class="btn secondaire" id="tutoPrecedent">Passer</button>
+        <span class="espace"></span>
+        <button type="button" class="btn" id="tutoSuivant">Suivant</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= Fenêtre : installation ================= -->
+  <div class="voile cache" id="fenetreInstallation" role="dialog" aria-modal="true" aria-labelledby="titreInstallation">
+    <div class="fenetre" style="max-width:440px">
+      <div class="tete">
+        <h2 id="titreInstallation">Installer l'application</h2>
+        <button type="button" class="btn discret carre" data-fermer aria-label="Fermer"><svg class="i"><use href="#i-x"/></svg></button>
+      </div>
+      <div class="corps texte-tuto" id="installCorps"></div>
+      <div class="pied"><span class="espace"></span><button type="button" class="btn secondaire" data-fermer>Fermer</button></div>
+    </div>
   </div>
 
   <div id="toast" class="cache" role="status" aria-live="polite"></div>
@@ -732,6 +798,7 @@
       if (!carte) initCarte();
       chargerTournee();
       rafraichir(true);
+      if (typeof apresConnexion === 'function') apresConnexion();
     }
 
     // ================= Carte principale =================
@@ -1415,5 +1482,6 @@
     if (code) demarrer().catch(deconnexion);
   </script>
   <script src="localisation.js"></script>
+  <script src="aide.js"></script>
 </body>
 </html>
