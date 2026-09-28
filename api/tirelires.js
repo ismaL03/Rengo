@@ -2,6 +2,7 @@
 const { supabase, repondre, route } = require('./_lib');
 
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
+const STATUTS = ['a_poser', 'en_place', 'refus', 'retiree'];
 
 // Valide les champs reçus et renvoie { ligne } ou { erreur }.
 // En création, le nom est obligatoire ; en modification, seuls les champs envoyés sont changés.
@@ -13,8 +14,12 @@ function nettoyer(b, creation) {
     ligne.entreprise = texte(b.entreprise);
     if (!ligne.entreprise) return { erreur: 'Le nom du commerce est obligatoire' };
   }
-  for (const champ of ['ville', 'adresse', 'notes']) {
+  for (const champ of ['ville', 'adresse', 'notes', 'contact_nom', 'contact_tel', 'horaires']) {
     if (champ in b) ligne[champ] = texte(b[champ]);
+  }
+  if ('statut' in b) {
+    if (!STATUTS.includes(b.statut)) return { erreur: 'Statut invalide' };
+    ligne.statut = b.statut;
   }
 
   if ('lat' in b || 'lng' in b) {

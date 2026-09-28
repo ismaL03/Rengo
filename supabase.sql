@@ -9,6 +9,11 @@ create table if not exists tirelires (
   date_pose     date not null default current_date,
   dernier_vidage date,
   notes         text,
+  statut        text not null default 'en_place'
+                check (statut in ('a_poser', 'en_place', 'refus', 'retiree')),
+  contact_nom   text,
+  contact_tel   text,
+  horaires      text,
   notion_id     text unique,
   created_at    timestamptz not null default now()
 );
