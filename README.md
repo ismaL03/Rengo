@@ -8,7 +8,7 @@ Accès protégé par un code unique.
 - **API** : `api/tirelires.js` (fonction serverless Vercel, vérifie le code d'accès)
 - **Base de données** : Supabase (Postgres gratuit), table créée par `supabase.sql`
 
-Code couleur (comme dans Notion) : 🟢 vidée il y a < 6 semaines · 🟠 6 à 9 semaines · 🔴 > 9 semaines
+Code couleur (réglable dans ⚙️ Paramètres) : 🟢 vidée il y a moins de 3 mois · 🟠 3 à 5 mois · 🔴 plus de 5 mois
 (si jamais vidée, on compte depuis la date de pose).
 
 ## Mise en ligne (≈ 15 min, gratuit)
@@ -43,9 +43,18 @@ Le script ajoute les 206 tirelires de la base Notion **🏛️ Tirelires Rengo**
 sans créer de doublons. Celles qui n'avaient pas de position GPS dans Notion apparaissent dans la
 liste avec un bouton **📍 Placer** pour les mettre sur la carte.
 
+### 4. Activer les paramètres (seuils de couleur)
+Dans Supabase → **SQL Editor**, colle le contenu de `migration_v2.sql` → **Run** (une seule fois).
+Sans cette étape, le site fonctionne avec les seuils par défaut (3 et 5 mois) mais ne peut pas les enregistrer.
+
 ## Utilisation
-- **Carte** : chaque point = une tirelire, couleur = urgence du vidage. Clic = détails.
-- **➕ Ajouter** : nom du commerce, ville, adresse, date de pose, puis la position
-  (clic sur la carte, 📍 *Ma position* sur place, ou 🔎 *Depuis l'adresse*).
-- **💧 Vidée** : met la date du dernier vidage à aujourd'hui.
-- Corriger / supprimer une tirelire : directement dans Supabase → *Table Editor*.
+- **Compteurs en haut** : total, 🟢 OK, 🟠 bientôt, 🔴 à vider, sans GPS. Un clic filtre la liste et la carte.
+- **Carte** : un point par tirelire, couleur = temps écoulé depuis le dernier vidage (ou la pose).
+  Un clic ouvre une bulle avec 💧 Vidée, ✏️ Modifier et 🧭 itinéraire.
+- **Liste** : recherche (nom, ville, adresse, notes), filtre par ville, tri (plus urgentes, récentes, nom, ville).
+  Chaque fiche indique depuis quand elle est posée, vidée, et la date limite du prochain passage.
+- **＋ Nouvelle tirelire** / **✏️ Modifier** : tous les champs sont modifiables. Pour la position :
+  📍 *Utiliser ma position* (GPS du téléphone, l'adresse se remplit toute seule), toucher la mini-carte
+  puis glisser le repère, ou 🔎 *Depuis l'adresse*. La suppression se fait depuis cette fenêtre.
+- **⚙️ Paramètres** : seuils orange / rouge en mois (par défaut 3 et 5), partagés par tous les membres.
+- **🚪** : se déconnecter.
