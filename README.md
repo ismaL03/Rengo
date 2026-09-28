@@ -62,7 +62,7 @@ Cela permet à l'outil « Localiser automatiquement » de marquer les positions 
   Un clic ouvre une bulle avec 💧 Vidée, ✏️ Modifier et 🧭 itinéraire.
 - **Liste** : recherche (nom, ville, adresse, notes), filtre par ville, tri (plus urgentes, récentes, nom, ville).
   Chaque fiche indique depuis quand elle est posée, vidée, et la date limite du prochain passage.
-- **＋ Nouvelle tirelire** / **✏️ Modifier** : tous les champs sont modifiables. Pour la position :
+- **+ Nouvelle tirelire** (en haut à droite) / **Modifier** : tous les champs sont modifiables. Pour la position :
   📍 *Utiliser ma position* (GPS du téléphone, l'adresse se remplit toute seule), toucher la mini-carte
   puis glisser le repère, ou 🔎 *Depuis l'adresse*. La suppression se fait depuis cette fenêtre.
 - **Statuts** : 🟢 En place, 🎯 À poser (repérage), ❌ Refus, 🔁 Retirée. Par défaut la liste montre les
@@ -80,5 +80,5 @@ Cela permet à l'outil « Localiser automatiquement » de marquer les positions 
   zone de sa ville. Tu valides la liste avant l'enregistrement. Les positions devinées sont marquées
   « approximatives » (point en pointillés) et comptées dans « À localiser » ; elles deviennent exactes
   dès qu'on replace le point à la main ou avec 📍 *Utiliser ma position*.
-- **⚙️ Paramètres** : seuils orange / rouge en mois (par défaut 3 et 5), partagés par tous les membres.
-- **🚪** : se déconnecter.
+- **Paramètres** (roue crantée) : apparence (automatique selon le téléphone, clair ou sombre), seuils
+  orange / rouge en mois (par défaut 3 et 5, partagés par tous les membres), et « Se déconnecter ».
