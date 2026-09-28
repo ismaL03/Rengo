@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tirelires Rengo</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+  <style>
+    :root { --bleu: #4a86c5; --violet: #8a6bb1; --gris: #f3f4f7; --texte: #1d1d1f; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; color: var(--texte); background: var(--gris); }
+    header { background: #fff; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 3px solid var(--violet); }
+    .logo { font-weight: 800; letter-spacing: 3px; font-size: 22px; }
+    .logo small { display: block; font-weight: 500; letter-spacing: 0; font-size: 12px; color: var(--violet); }
+    main { max-width: 900px; margin: 0 auto; padding: 16px; }
+    #carte { height: 45vh; min-height: 280px; border-radius: 12px; }
+    button { font: inherit; border: 0; border-radius: 8px; padding: 10px 14px; cursor: pointer; background: var(--bleu); color: #fff; }
+    button.secondaire { background: #e4e6ec; color: var(--texte); }
+    input, textarea { font: inherit; width: 100%; padding: 10px; border: 1px solid #ccd; border-radius: 8px; margin-top: 4px; }
+    label { display: block; margin-top: 10px; font-size: 14px; }
+    .carte-blanche { background: #fff; border-radius: 12px; padding: 16px; margin-top: 16px; }
+    .barre { display: flex; gap: 8px; margin-top: 16px; }
+    .barre input { margin: 0; }
+    .tirelire { background: #fff; border-radius: 10px; padding: 12px; margin-top: 8px; display: flex; gap: 12px; align-items: center; }
+    .tirelire .infos { flex: 1; }
+    .tirelire .nom { font-weight: 600; }
+    .tirelire .detail { font-size: 13px; color: #666; }
+    .pastille { width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0; }
+    .legende { font-size: 13px; color: #666; margin-top: 8px; }
+    .erreur { color: #c0392b; margin-top: 8px; }
+    #connexion { max-width: 360px; margin: 15vh auto; text-align: center; }
+    .cache { display: none !important; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">RENGO<small>L'union fait la force</small></div>
+    <button class="secondaire cache" id="btnDeconnexion">Quitter</button>
+  </header>
+
+  <!-- Écran de connexion -->
+  <section id="connexion" class="carte-blanche">
+    <h2>Tirelires Rengo</h2>
+    <p>Entre le code d'accès de l'association</p>
+    <form id="formConnexion">
+      <input id="code" type="password" placeholder="Code d'accès" autocomplete="current-password" required>
+      <button style="width:100%;margin-top:12px">Entrer</button>
+      <div id="erreurConnexion" class="erreur"></div>
+    </form>
+  </section>
+
+  <!-- Application -->
+  <main id="app" class="cache">
+    <div id="carte"></div>
+    <div class="legende">🟢 vidée il y a moins de 6 semaines · 🟠 entre 6 et 9 semaines · 🔴 plus de 9 semaines</div>
+
+    <div class="barre">
+      <input id="recherche" placeholder="🔎 Rechercher un commerce ou une ville">
+      <button id="btnAjouter">➕ Ajouter</button>
+    </div>
+
+    <form id="formAjout" class="carte-blanche cache">
+      <h3 style="margin-top:0">Nouvelle tirelire</h3>
+      <label>Commerce *<input name="entreprise" required></label>
+      <label>Ville<input name="ville"></label>
+      <label>Adresse<input name="adresse"></label>
+      <label>Date de pose<input name="date_pose" type="date"></label>
+      <label>Notes<textarea name="notes" rows="2"></textarea></label>
+      <label>Position * <span id="positionTexte" class="detail">— clique sur la carte, ou :</span></label>
+      <div class="barre" style="margin-top:6px">
+        <button type="button" class="secondaire" id="btnMaPosition">📍 Ma position</button>
+        <button type="button" class="secondaire" id="btnChercherAdresse">🔎 Depuis l'adresse</button>
+      </div>
+      <div class="barre">
+        <button>Enregistrer</button>
+        <button type="button" class="secondaire" id="btnAnnuler">Annuler</button>
+      </div>
+      <div id="erreurAjout" class="erreur"></div>
+    </form>
+
+    <h3 id="compteur"></h3>
+    <div id="liste"></div>
+  </main>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+  <script>
+    const $ = (id) => document.getElementById(id);
+    let code = localStorage.getItem('rengo-code') || '';
+    let tirelires = [];
+    let carte, calque, marqueurNouveau, positionNouvelle = null;
+
+    // ---------- Utilitaires ----------
+    const echapper = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const joursDepuis = (d) => Math.floor((Date.now() - new Date(d)) / 86400000);
+    const dateFr = (d) => new Date(d).toLocaleDateString('fr-FR');
+    const duree = (j) => j < 1 ? "aujourd'hui" : j < 60 ? `il y a ${j} j` : `il y a ${Math.round(j / 30)} mois`;
+
+    function couleur(t) {
+      const semaines = joursDepuis(t.dernier_vidage || t.date_pose) / 7;
+      return semaines < 6 ? '#2ecc71' : semaines < 9 ? '#f39c12' : '#e74c3c';
+    }
+
+    async function api(methode, chemin = '', corps) {
+      const r = await fetch('/api/tirelires' + chemin, {
+        method: methode,
+        headers: { 'x-code': code, 'Content-Type': 'application/json' },
+        body: corps ? JSON.stringify(corps) : undefined,
+      });
+      const data = await r.json().catch(() => ({}));
+      if (r.status === 401) { deconnexion(); throw new Error("Code d'accès invalide"); }
+      if (!r.ok) throw new Error(data.error || 'Erreur');
+      return data;
+    }
+
+    // ---------- Connexion ----------
+    $('formConnexion').onsubmit = async (e) => {
+      e.preventDefault();
+      code = $('code').value.trim();
+      try { await demarrer(); } catch (err) { $('erreurConnexion').textContent = err.message; }
+    };
+
+    function deconnexion() {
+      localStorage.removeItem('rengo-code');
+      code = '';
+      $('app').classList.add('cache');
+      $('btnDeconnexion').classList.add('cache');
+      $('connexion').classList.remove('cache');
+    }
+    $('btnDeconnexion').onclick = deconnexion;
+
+    async function demarrer() {
+      tirelires = await api('GET');
+      localStorage.setItem('rengo-code', code);
+      $('connexion').classList.add('cache');
+      $('app').classList.remove('cache');
+      $('btnDeconnexion').classList.remove('cache');
+      if (!carte) initCarte();
+      afficher();
+    }
+
+    // ---------- Carte ----------
+    function initCarte() {
+      carte = L.map('carte').setView([49.2, 2.5], 9);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(carte);
+      calque = L.layerGroup().addTo(carte);
+      carte.on('click', (e) => { if (!$('formAjout').classList.contains('cache')) placerNouveau(e.latlng.lat, e.latlng.lng); });
+    }
+
+    function placerNouveau(lat, lng) {
+      positionNouvelle = { lat, lng };
+      if (marqueurNouveau) marqueurNouveau.remove();
+      marqueurNouveau = L.marker([lat, lng]).addTo(carte);
+      carte.setView([lat, lng], 16);
+      $('positionTexte').textContent = `✅ ${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+    }
+
+    // ---------- Liste + marqueurs ----------
+    function afficher() {
+      const filtre = $('recherche').value.toLowerCase();
+      const visibles = tirelires.filter((t) => `${t.entreprise} ${t.ville} ${t.adresse}`.toLowerCase().includes(filtre));
+
+      calque.clearLayers();
+      visibles.forEach((t) => {
+        L.circleMarker([t.lat, t.lng], { radius: 9, color: '#fff', weight: 2, fillColor: couleur(t), fillOpacity: 1 })
+          .bindPopup(`<b>${echapper(t.entreprise)}</b><br>${echapper(t.adresse || t.ville || '')}<br>Posée le ${dateFr(t.date_pose)} (${duree(joursDepuis(t.date_pose))})`)
+          .addTo(calque);
+      });
+      if (visibles.length && !filtre) carte.fitBounds(visibles.map((t) => [t.lat, t.lng]), { padding: [30, 30], maxZoom: 14 });
+
+      $('compteur').textContent = `${visibles.length} tirelire${visibles.length > 1 ? 's' : ''}`;
+      $('liste').innerHTML = visibles.map((t) => `
+        <div class="tirelire">
+          <div class="pastille" style="background:${couleur(t)}"></div>
+          <div class="infos" data-id="${t.id}" style="cursor:pointer">
+            <div class="nom">${echapper(t.entreprise)}</div>
+            <div class="detail">${echapper(t.ville || '')} · posée le ${dateFr(t.date_pose)} (${duree(joursDepuis(t.date_pose))})</div>
+            <div class="detail">Dernier vidage : ${t.dernier_vidage ? `${dateFr(t.dernier_vidage)} (${duree(joursDepuis(t.dernier_vidage))})` : 'jamais'}</div>
+          </div>
+          <button class="secondaire" data-vider="${t.id}">💧 Vidée</button>
+        </div>`).join('');
+    }
+
+    $('recherche').oninput = afficher;
+
+    $('liste').onclick = async (e) => {
+      const vider = e.target.closest('[data-vider]');
+      const infos = e.target.closest('[data-id]');
+      if (vider) {
+        const t = tirelires.find((x) => x.id == vider.dataset.vider);
+        if (!confirm(`Marquer « ${t.entreprise} » comme vidée aujourd'hui ?`)) return;
+        const [maj] = await api('PATCH', `?id=${t.id}`, {});
+        Object.assign(t, maj);
+        afficher();
+      } else if (infos) {
+        const t = tirelires.find((x) => x.id == infos.dataset.id);
+        carte.setView([t.lat, t.lng], 16);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    };
+
+    // ---------- Ajout ----------
+    $('btnAjouter').onclick = () => {
+      $('formAjout').classList.remove('cache');
+      $('formAjout').date_pose.value = new Date().toISOString().slice(0, 10);
+      $('formAjout').scrollIntoView({ behavior: 'smooth' });
+    };
+
+    function fermerAjout() {
+      $('formAjout').reset();
+      $('formAjout').classList.add('cache');
+      $('erreurAjout').textContent = '';
+      $('positionTexte').textContent = '— clique sur la carte, ou :';
+      positionNouvelle = null;
+      if (marqueurNouveau) { marqueurNouveau.remove(); marqueurNouveau = null; }
+    }
+    $('btnAnnuler').onclick = fermerAjout;
+
+    $('btnMaPosition').onclick = () => {
+      if (!navigator.geolocation) return alert('Géolocalisation non disponible');
+      navigator.geolocation.getCurrentPosition(
+        (p) => placerNouveau(p.coords.latitude, p.coords.longitude),
+        () => alert("Impossible d'obtenir ta position"),
+        { enableHighAccuracy: true }
+      );
+    };
+
+    $('btnChercherAdresse').onclick = async () => {
+      const f = $('formAjout');
+      const q = `${f.adresse.value} ${f.ville.value}`.trim();
+      if (!q) return alert("Remplis d'abord l'adresse et/ou la ville");
+      const r = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=fr&q=${encodeURIComponent(q)}`);
+      const [res] = await r.json();
+      if (!res) return alert('Adresse introuvable, clique directement sur la carte');
+      placerNouveau(Number(res.lat), Number(res.lon));
+    };
+
+    $('formAjout').onsubmit = async (e) => {
+      e.preventDefault();
+      if (!positionNouvelle) { $('erreurAjout').textContent = 'Indique la position (carte, ma position ou adresse)'; return; }
+      const donnees = Object.fromEntries(new FormData(e.target));
+      try {
+        const [nouvelle] = await api('POST', '', { ...donnees, ...positionNouvelle });
+        tirelires.unshift(nouvelle);
+        fermerAjout();
+        afficher();
+      } catch (err) { $('erreurAjout').textContent = err.message; }
+    };
+
+    // Reconnexion automatique si le code est déjà mémorisé
+    if (code) demarrer().catch(deconnexion);
+  </script>
+</body>
+</html>
