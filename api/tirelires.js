@@ -3,14 +3,15 @@
 const crypto = require('crypto');
 
 function codeValide(code) {
-  const attendu = Buffer.from(process.env.ACCESS_CODE || '');
+  const attendu = Buffer.from((process.env.ACCESS_CODE || '').trim());
   const recu = Buffer.from(String(code || ''));
   return attendu.length > 0 && attendu.length === recu.length && crypto.timingSafeEqual(attendu, recu);
 }
 
 function supabase(query, options = {}) {
-  const key = process.env.SUPABASE_SERVICE_KEY;
-  return fetch(`${process.env.SUPABASE_URL}/rest/v1/tirelires${query}`, {
+  const key = process.env.SUPABASE_SERVICE_KEY.trim();
+  const url = process.env.SUPABASE_URL.trim().replace(/\/$/, '');
+  return fetch(`${url}/rest/v1/tirelires${query}`, {
     ...options,
     headers: {
       apikey: key,
@@ -22,13 +23,34 @@ function supabase(query, options = {}) {
 }
 
 async function repondre(res, reponse) {
-  const data = await reponse.json();
-  res.status(reponse.ok ? 200 : 500).json(reponse.ok ? data : { error: data.message || 'Erreur base de données' });
+  const texte = await reponse.text();
+  let data;
+  try {
+    data = JSON.parse(texte);
+  } catch {
+    return res.status(500).json({ error: `Supabase a répondu autre chose que du JSON (HTTP ${reponse.status}) : vérifie SUPABASE_URL` });
+  }
+  res.status(reponse.ok ? 200 : 500).json(reponse.ok ? data : { error: `Supabase : ${data.message || data.error || texte}` });
 }
 
 module.exports = async (req, res) => {
+  try {
+    await traiter(req, res);
+  } catch (err) {
+    res.status(500).json({ error: `Erreur serveur : ${err.message}` });
+  }
+};
+
+async function traiter(req, res) {
   if (!codeValide(req.headers['x-code'])) {
     return res.status(401).json({ error: "Code d'accès invalide" });
+  }
+
+  if (!/^https:\/\/[a-z0-9]+\.supabase\.co\/?$/.test((process.env.SUPABASE_URL || '').trim())) {
+    return res.status(500).json({ error: 'SUPABASE_URL absente ou incorrecte (attendu : https://xxxx.supabase.co)' });
+  }
+  if (!process.env.SUPABASE_SERVICE_KEY) {
+    return res.status(500).json({ error: 'SUPABASE_SERVICE_KEY absente' });
   }
 
   if (req.method === 'GET') {
@@ -62,4 +84,4 @@ module.exports = async (req, res) => {
   }
 
   res.status(405).json({ error: 'Méthode non autorisée' });
-};
+}
