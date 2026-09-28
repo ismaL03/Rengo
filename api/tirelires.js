@@ -37,6 +37,8 @@ function nettoyer(b, creation) {
     }
   }
 
+  if ('position_approx' in b) ligne.position_approx = b.position_approx === true;
+
   if ('date_pose' in b && b.date_pose) {
     if (!DATE.test(b.date_pose)) return { erreur: 'Date de pose invalide' };
     ligne.date_pose = b.date_pose;

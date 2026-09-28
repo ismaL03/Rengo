@@ -6,6 +6,7 @@ create table if not exists tirelires (
   adresse       text,
   lat           double precision,
   lng           double precision,
+  position_approx boolean not null default false,
   date_pose     date not null default current_date,
   dernier_vidage date,
   notes         text,
