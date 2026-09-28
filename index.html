@@ -162,6 +162,13 @@
     .coches label { margin: 0; display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--texte); font-weight: 400; border: 1px solid var(--bord); border-radius: 10px; padding: 10px 12px; cursor: pointer; }
     .coches label .nb { margin-left: auto; color: var(--doux); font-size: 13px; }
     .resume-tournee { margin-top: 14px; font-weight: 600; }
+    .bandeau { display: flex; align-items: center; gap: 12px; padding: 12px 14px; margin-bottom: 12px; background: linear-gradient(135deg, #eef4fb, #f3eefa); border-radius: 12px; font-size: 14px; }
+    .bandeau .espace { flex: 1; }
+    @media (max-width: 480px) { .bandeau { flex-wrap: wrap; } .bandeau .btn { width: 100%; } }
+    .ligne-loc { display: flex; gap: 10px; align-items: flex-start; margin: 0; padding: 8px 2px; border-bottom: 1px solid #f0f2f6; font-size: 14px; color: var(--texte); font-weight: 400; cursor: pointer; }
+    .ligne-loc small { color: var(--doux); }
+    .ligne-loc input { margin-top: 4px; }
+    #locResume { display: grid; gap: 4px; font-size: 14px; background: #f6f8fc; border-radius: 10px; padding: 10px 12px; }
     @keyframes apparait { from { opacity: 0; } }
     @keyframes monte { from { transform: translateY(30px); opacity: 0; } }
 
@@ -226,6 +233,7 @@
               <option value="ville">Ville</option>
             </select>
           </div>
+          <div id="bandeauLocalisation"></div>
           <div class="compteur" id="compteur"></div>
           <div id="liste"></div>
         </div>
@@ -351,6 +359,38 @@
     </form>
   </div>
 
+  <!-- ================= Fenêtre : localisation automatique ================= -->
+  <div class="voile cache" id="fenetreLocalisation">
+    <div class="fenetre" style="max-width:600px">
+      <div class="tete">
+        <h2>📍 Localiser automatiquement</h2>
+        <button type="button" class="btn leger icone" data-fermer aria-label="Fermer">✕</button>
+      </div>
+      <div class="corps">
+        <div id="locEtape1">
+          <p style="margin-top:0"><b id="locNombre"></b> n'ont pas de position. Pour chacune, le site va :</p>
+          <ol style="padding-left:20px;margin:0;display:grid;gap:6px;font-size:14px">
+            <li>🏪 <b>chercher le commerce par son nom</b> dans sa ville (carte OpenStreetMap) ;</li>
+            <li>🔗 sinon, la placer <b>à côté de la tirelire citée dans son nom</b> (« collée à… », « en face de… ») ;</li>
+            <li>🏙️ sinon, la placer <b>dans la zone de sa ville</b>, là où sont les autres tirelires : position approximative, à vérifier sur place.</li>
+          </ol>
+          <div class="aide">Rien n'est enregistré avant que tu valides la liste. Compte 2 à 4 minutes pour 150 tirelires (les services de cartes limitent le nombre de recherches par seconde). Garde cette fenêtre ouverte.</div>
+          <div id="locMigration" class="aide attention cache">Lance d'abord <b>migration_v4.sql</b> dans Supabase pour pouvoir marquer les positions approximatives.</div>
+        </div>
+        <div id="locEtape2" class="cache">
+          <p id="locMessage" style="margin-top:0">Préparation…</p>
+          <div class="progression"><div id="locBarre" style="width:0"></div></div>
+          <div id="locAvancement" style="font-size:13px;color:var(--doux)"></div>
+        </div>
+        <div id="locEtape3" class="cache">
+          <div id="locResume"></div>
+          <div id="locResultats"></div>
+        </div>
+      </div>
+      <div class="pied" id="locPied"></div>
+    </div>
+  </div>
+
   <!-- ================= Fenêtre : paramètres ================= -->
   <div class="voile cache" id="fenetreParametres">
     <form class="fenetre" id="formParametres" style="max-width:440px">
@@ -396,9 +436,10 @@
     let tirelires = [];
     let seuils = { orange: 3, rouge: 5 };
     let v3 = true; // colonnes statut / contact présentes en base (migration_v3.sql lancée)
+    let v4 = true; // colonne position_approx présente (migration_v4.sql lancée)
     let filtreTuile = '';
     let carte, calque, marqueurs = {};
-    let miniCarte, marqueurFiche = null, positionFiche = null, ficheEnCours = null;
+    let miniCarte, marqueurFiche = null, positionFiche = null, ficheEnCours = null, positionModifiee = false;
     let tournee = null;
 
     // Urgence de vidage (tirelires en place)
@@ -517,6 +558,7 @@
       const [liste, params] = await Promise.all([api('GET', 'tirelires'), api('GET', 'parametres').catch(() => null)]);
       tirelires = liste;
       v3 = !tirelires.length || 'statut' in tirelires[0];
+      v4 = !tirelires.length || 'position_approx' in tirelires[0];
       if (params) seuils = { orange: params.seuil_orange_mois, rouge: params.seuil_rouge_mois };
       stockage.ecrire('rengo-code', code);
       $('connexion').classList.add('cache');
@@ -555,12 +597,13 @@
         : e === 'a_poser'
           ? { radius: 8, color: ETATS.a_poser.hex, weight: 3, fillColor: '#fff', fillOpacity: 1 }
           : { radius: 6, color: '#fff', weight: 2, fillColor: ETATS[e].hex, fillOpacity: .9 };
+      if (t.position_approx) Object.assign(style, { color: '#1c1d21', weight: 1.5, dashArray: '3 3', fillOpacity: .45 });
       const detail = e === 'en_place'
         ? `${URGENCES[urgence(t)].libelle} · ${t.dernier_vidage ? 'vidée ' + duree(joursDepuis(t.dernier_vidage)) : 'posée ' + duree(joursDepuis(t.date_pose))}`
         : `${ETATS[e].icone} ${ETATS[e].libelle}`;
       return L.circleMarker([t.lat, t.lng], style).bindPopup(`
         <div class="popup-nom">${echapper(t.entreprise)}</div>
-        <div class="popup-detail">${echapper(t.adresse || t.ville || '')}<br>${detail}</div>
+        <div class="popup-detail">${echapper(t.adresse || t.ville || '')}<br>${detail}${t.position_approx ? '<br>📍 Position approximative, à vérifier' : ''}</div>
         <div class="popup-actions">${boutonsAction(t, true)}</div>`);
     }
 
@@ -575,7 +618,7 @@
         if (ville && t.ville !== ville) return false;
         if (['ok', 'bientot', 'urgent'].includes(filtreTuile) && (e !== 'en_place' || urgence(t) !== filtreTuile)) return false;
         if (filtreTuile === 'a_poser' && e !== 'a_poser') return false;
-        if (filtreTuile === 'sans' && aPosition(t)) return false;
+        if (filtreTuile === 'sans' && aPosition(t) && !t.position_approx) return false;
         return !q || [t.entreprise, t.ville, t.adresse, t.notes, t.contact_nom, t.contact_tel].join(' ').toLowerCase().includes(q);
       });
     }
@@ -597,7 +640,7 @@
         const e = etat(t);
         if (e === 'en_place') n[urgence(t)]++;
         if (e === 'a_poser') n.a_poser++;
-        if (e === 'en_place' || e === 'a_poser') { n.actives++; if (!aPosition(t)) n.sans++; }
+        if (e === 'en_place' || e === 'a_poser') { n.actives++; if (!aPosition(t) || t.position_approx) n.sans++; }
       });
       const tuiles = [
         ['', n.actives, 'Actives', '#4a86c5', ''],
@@ -605,7 +648,7 @@
         ['bientot', n.bientot, 'Bientôt', URGENCES.bientot.hex, ''],
         ['urgent', n.urgent, 'À vider', URGENCES.urgent.hex, ''],
         ['a_poser', n.a_poser, 'À poser', ETATS.a_poser.hex, 'creux'],
-        ['sans', n.sans, 'Sans GPS', '#9aa0ad', ''],
+        ['sans', n.sans, 'À localiser', '#9aa0ad', ''],
       ];
       $('stats').innerHTML = tuiles.map(([cle, nb, libelle, hex, classe]) => `
         <button class="tuile ${filtreTuile === cle ? 'actif' : ''}" data-filtre="${cle}">
@@ -617,7 +660,8 @@
         <span><span class="point" style="background:${URGENCES.bientot.hex}"></span>${seuils.orange} à ${seuils.rouge} mois</span>
         <span><span class="point" style="background:${URGENCES.urgent.hex}"></span>plus de ${seuils.rouge} mois</span>
         <span><span class="point creux"></span>à poser</span>
-        <span><span class="point" style="background:${ETATS.refus.hex}"></span>refus / retirée</span>`;
+        <span><span class="point" style="background:${ETATS.refus.hex}"></span>refus / retirée</span>
+        <span><span class="point" style="background:#c9ccd4;outline:1.5px dashed #6b7080;outline-offset:1px"></span>position approximative</span>`;
     }
 
     function afficherVilles() {
@@ -642,6 +686,7 @@
         if (e === 'retiree' && t.dernier_vidage) b.push(`<span class="badge">Dernier vidage le ${dateFr(t.dernier_vidage)}</span>`);
       }
       if (!aPosition(t) && (e === 'en_place' || e === 'a_poser')) b.push('<span class="badge" style="background:#fff3e0;color:#9a5a00">📍 Sans position</span>');
+      if (aPosition(t) && t.position_approx) b.push('<span class="badge" style="background:#fff3e0;color:#9a5a00">📍 Position approximative</span>');
       return b.join('');
     }
 
@@ -659,6 +704,11 @@
       placees.forEach((t) => (marqueurs[t.id] = marqueur(t).addTo(calque)));
       if (recadrer && placees.length) carte.fitBounds(placees.map((t) => [t.lat, t.lng]), { padding: [30, 30], maxZoom: 15 });
 
+      const aLocaliser = tirelires.filter((t) => !aPosition(t)).length;
+      $('bandeauLocalisation').innerHTML = aLocaliser
+        ? `<div class="bandeau"><span>📍 <b>${pluriel(aLocaliser, 'tirelire')}</b> sans position sur la carte.</span><span class="espace"></span>
+           <button class="btn degrade petit" onclick="ouvrirLocalisation()">Localiser automatiquement</button></div>`
+        : '';
       const sans = visibles.length - placees.length;
       $('compteur').textContent = pluriel(visibles.length, 'tirelire') + (sans ? ` · ${sans} sans position` : '');
       if (!visibles.length) {
@@ -977,8 +1027,9 @@
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape') fermerFenetres(); });
 
     // ================= Fenêtre ajouter / modifier =================
-    function definirPosition(lat, lng, centrer) {
+    function definirPosition(lat, lng, centrer, parUtilisateur = true) {
       positionFiche = { lat, lng };
+      if (parUtilisateur) positionModifiee = true;
       if (marqueurFiche) marqueurFiche.setLatLng([lat, lng]);
       else {
         const icone = L.divIcon({ className: '', html: '<div class="repere"></div>', iconSize: [26, 26], iconAnchor: [13, 30] });
@@ -990,12 +1041,15 @@
         });
       }
       if (centrer) miniCarte.setView([lat, lng], 17);
-      $('positionInfo').textContent = `✅ Point placé (${lat.toFixed(5)}, ${lng.toFixed(5)}) — glisse-le pour ajuster.`;
+      $('positionInfo').textContent = ficheEnCours && ficheEnCours.position_approx && !positionModifiee
+        ? '⚠️ Position approximative : place le point précisément (📍 ma position, ou glisse le repère).'
+        : `✅ Point placé (${lat.toFixed(5)}, ${lng.toFixed(5)}) — glisse-le pour ajuster.`;
       $('btnRetirerPosition').classList.remove('cache');
     }
 
     function retirerPosition() {
       positionFiche = null;
+      positionModifiee = true;
       if (marqueurFiche) { marqueurFiche.remove(); marqueurFiche = null; }
       $('positionInfo').textContent = 'Touche la carte pour placer le point (tu peux ensuite le déplacer).';
       $('btnRetirerPosition').classList.add('cache');
@@ -1048,9 +1102,10 @@
         miniCarte.on('click', (e) => { definirPosition(e.latlng.lat, e.latlng.lng, false); completerAdresse(e.latlng.lat, e.latlng.lng, false); });
       }
       retirerPosition();
+      positionModifiee = false;
       setTimeout(() => {
         miniCarte.invalidateSize();
-        if (t && aPosition(t)) definirPosition(t.lat, t.lng, true);
+        if (t && aPosition(t)) definirPosition(t.lat, t.lng, true, false);
         else miniCarte.setView(carte.getCenter(), Math.max(carte.getZoom(), 12));
       }, 50);
       if (!t) setTimeout(() => f.entreprise.focus(), 100);
@@ -1098,6 +1153,8 @@
         lat: positionFiche ? positionFiche.lat : null,
         lng: positionFiche ? positionFiche.lng : null,
       };
+      // Une position placée à la main n'est plus approximative
+      if (v4) donnees.position_approx = !!(ficheEnCours && ficheEnCours.position_approx && !positionModifiee && positionFiche);
       if (v3) Object.assign(donnees, { statut: f.statut.value, contact_nom: f.contact_nom.value, contact_tel: f.contact_tel.value, horaires: f.horaires.value });
       $('btnEnregistrer').disabled = true;
       try {
@@ -1166,5 +1223,6 @@
     // Reconnexion automatique si le code est déjà mémorisé
     if (code) demarrer().catch(deconnexion);
   </script>
+  <script src="localisation.js"></script>
 </body>
 </html>

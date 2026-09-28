@@ -36,7 +36,8 @@ async function repondre(res, reponse) {
   if (ok) return res.status(200).json(data);
   const message = (data && (data.message || data.error)) || 'erreur inconnue';
   // Colonne ajoutée par une migration pas encore lancée : on indique laquelle lancer.
-  const conseil = /statut|contact_nom|contact_tel|horaires/.test(message) ? ' — lance migration_v3.sql dans Supabase' : '';
+  const conseil = /position_approx/.test(message) ? ' — lance migration_v4.sql dans Supabase'
+    : /statut|contact_nom|contact_tel|horaires/.test(message) ? ' — lance migration_v3.sql dans Supabase' : '';
   res.status(500).json({ error: `Supabase : ${message}${conseil}` });
 }
 

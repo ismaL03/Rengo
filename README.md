@@ -52,6 +52,10 @@ Dans Supabase → **SQL Editor**, colle le contenu de `migration_v3.sql` → **R
 Toutes les tirelires existantes passent au statut « En place ». Sans cette étape, le site reste
 utilisable mais les statuts et le contact sont masqués.
 
+### 6. Positions approximatives
+Dans Supabase → **SQL Editor**, colle le contenu de `migration_v4.sql` → **Run** (une seule fois).
+Cela permet à l'outil « Localiser automatiquement » de marquer les positions à vérifier.
+
 ## Utilisation
 - **Compteurs en haut** : total, 🟢 OK, 🟠 bientôt, 🔴 à vider, sans GPS. Un clic filtre la liste et la carte.
 - **Carte** : un point par tirelire, couleur = temps écoulé depuis le dernier vidage (ou la pose).
@@ -70,5 +74,11 @@ utilisable mais les statuts et le contact sont masqués.
   carte numérotée avec le trajet, 💧 Vidée / ✅ Posée / ⏭️ Passer à chaque arrêt, progression, et
   « Ouvrir les 4 prochains arrêts dans Google Maps » pour la navigation. La tournée en cours est
   gardée sur le téléphone même si on ferme la page.
+- **📍 Localiser automatiquement** (bandeau au-dessus de la liste quand des tirelires n'ont pas de position) :
+  pour chaque tirelire sans GPS, le site cherche le commerce par son nom dans sa ville (OpenStreetMap),
+  sinon la place à côté de la tirelire citée dans son nom (« collée à… », « en face de… »), sinon dans la
+  zone de sa ville. Tu valides la liste avant l'enregistrement. Les positions devinées sont marquées
+  « approximatives » (point en pointillés) et comptées dans « À localiser » ; elles deviennent exactes
+  dès qu'on replace le point à la main ou avec 📍 *Utiliser ma position*.
 - **⚙️ Paramètres** : seuils orange / rouge en mois (par défaut 3 et 5), partagés par tous les membres.
 - **🚪** : se déconnecter.
