@@ -57,6 +57,12 @@ Dans Supabase → **SQL Editor**, colle le contenu de `migration_v4.sql` → **R
 Cela permet à l'outil « Localiser automatiquement » de marquer les positions à vérifier.
 
 ## Utilisation
+- **Guide** : il s'ouvre à la première connexion sur chaque appareil (7 étapes, balayage possible) et se revoit
+  dans Paramètres → Aide → « Revoir le guide ».
+- **Installer sur l'écran d'accueil** : sur iPhone, dans Safari, bouton Partager → « Sur l'écran d'accueil » →
+  Ajouter. Sur Android, Chrome propose « Installer l'application ». L'application s'ouvre alors en plein écran
+  avec l'icône Rengo. Un bandeau le propose sur téléphone (on peut le masquer), et les consignes sont aussi
+  dans Paramètres → Aide → « Installer ».
 - **Compteurs en haut** : total, 🟢 OK, 🟠 bientôt, 🔴 à vider, sans GPS. Un clic filtre la liste et la carte.
 - **Carte** : un point par tirelire, couleur = temps écoulé depuis le dernier vidage (ou la pose).
   Un clic ouvre une bulle avec 💧 Vidée, ✏️ Modifier et 🧭 itinéraire.
