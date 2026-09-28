@@ -22,14 +22,18 @@
     html, body { margin: 0; }
     body { font-family: Poppins, system-ui, -apple-system, Segoe UI, Roboto, sans-serif; color: var(--texte); background: var(--fond); font-size: 15px; -webkit-font-smoothing: antialiased; }
     button, input, select, textarea { font: inherit; color: inherit; }
+    a { color: inherit; }
     .cache { display: none !important; }
 
     /* ---------- Boutons & champs ---------- */
-    .btn { border: 0; border-radius: 10px; padding: 10px 14px; cursor: pointer; background: var(--bleu); color: #fff; font-weight: 500; display: inline-flex; align-items: center; justify-content: center; gap: 6px; white-space: nowrap; transition: background .15s, transform .05s; }
+    .btn { border: 0; border-radius: 10px; padding: 10px 14px; cursor: pointer; background: var(--bleu); color: #fff; font-weight: 500; display: inline-flex; align-items: center; justify-content: center; gap: 6px; white-space: nowrap; text-decoration: none; transition: background .15s, transform .05s; }
     .btn:hover { background: var(--bleu-fonce); }
     .btn:active { transform: scale(.97); }
     .btn.leger { background: #eef1f7; color: var(--texte); }
     .btn.leger:hover { background: #e2e7f1; }
+    .btn.vert { background: var(--vert); }
+    .btn.vert:hover { background: #1b8c50; }
+    .btn.degrade { background: linear-gradient(135deg, var(--bleu), var(--violet)); }
     .btn.danger { background: #fdecec; color: var(--rouge); }
     .btn.danger:hover { background: #fadada; }
     .btn.petit { padding: 7px 10px; font-size: 13px; border-radius: 8px; }
@@ -37,7 +41,9 @@
     .btn:disabled { opacity: .6; cursor: wait; }
     input, select, textarea { width: 100%; padding: 10px 12px; border: 1px solid var(--bord); border-radius: 10px; background: #fff; outline: none; transition: border-color .15s, box-shadow .15s; }
     input:focus, select:focus, textarea:focus { border-color: var(--bleu); box-shadow: 0 0 0 3px rgba(74, 134, 197, .15); }
+    input[type="checkbox"], input[type="radio"] { width: auto; accent-color: var(--bleu); }
     label { display: block; font-size: 13px; font-weight: 500; color: var(--doux); margin: 12px 0 4px; }
+    .section { font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--violet); margin: 22px 0 2px; }
 
     /* ---------- Connexion ---------- */
     #connexion { min-height: 100vh; display: grid; place-items: center; padding: 16px; background: linear-gradient(135deg, #e9f1fb 0%, #f1ebf8 100%); }
@@ -49,10 +55,11 @@
 
     /* ---------- En-tête ---------- */
     header { position: sticky; top: 0; z-index: 1000; background: rgba(255, 255, 255, .92); backdrop-filter: blur(8px); border-bottom: 1px solid var(--bord); }
-    .entete { max-width: 1280px; margin: 0 auto; padding: 8px 16px; display: flex; align-items: center; gap: 12px; }
+    .entete { max-width: 1280px; margin: 0 auto; padding: 8px 16px; display: flex; align-items: center; gap: 8px; }
     .entete img { height: 38px; }
-    .entete .titre { font-weight: 600; color: var(--violet); border-left: 1px solid var(--bord); padding-left: 12px; font-size: 15px; }
+    .entete .titre { font-weight: 600; color: var(--violet); border-left: 1px solid var(--bord); padding-left: 12px; margin-left: 4px; font-size: 15px; }
     .entete .espace { flex: 1; }
+    @media (max-width: 480px) { .entete .titre { display: none; } .entete img { height: 32px; } }
 
     /* ---------- Mise en page ---------- */
     main { max-width: 1280px; margin: 0 auto; padding: 16px 16px 96px; }
@@ -64,46 +71,65 @@
     }
     .panneau { background: var(--carte); border-radius: var(--rayon); box-shadow: var(--ombre); }
 
-    /* ---------- Statistiques ---------- */
-    .stats { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; margin-bottom: 16px; }
+    /* ---------- Compteurs ---------- */
+    .stats { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; margin-bottom: 16px; }
     @media (max-width: 640px) {
-      .stats { gap: 6px; }
+      .stats { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
       .tuile { padding: 8px 6px; text-align: center; }
       .tuile .nombre { font-size: 18px; }
-      .tuile .libelle { font-size: 10.5px; justify-content: center; line-height: 1.2; }
+      .tuile .libelle { font-size: 11px; justify-content: center; line-height: 1.2; }
     }
     .tuile { background: var(--carte); border: 2px solid transparent; border-radius: 12px; padding: 10px 12px; box-shadow: var(--ombre); cursor: pointer; text-align: left; transition: border-color .15s; }
     .tuile:hover { border-color: var(--bord); }
     .tuile.actif { border-color: var(--bleu); }
     .tuile .nombre { font-size: 22px; font-weight: 700; line-height: 1.1; }
     .tuile .libelle { font-size: 12px; color: var(--doux); display: flex; align-items: center; gap: 5px; margin-top: 2px; }
-    .repere { width: 26px; height: 26px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); background: linear-gradient(135deg, var(--bleu), var(--violet)); border: 3px solid #fff; box-shadow: 0 2px 6px rgba(0, 0, 0, .35); }
     .point { width: 9px; height: 9px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+    .point.creux { background: #fff !important; border: 2px solid var(--bleu); }
 
     /* ---------- Carte ---------- */
     #carte { height: 42vh; min-height: 260px; border-radius: var(--rayon); z-index: 0; }
-    .legende { display: flex; flex-wrap: wrap; gap: 12px; font-size: 12px; color: var(--doux); padding: 10px 4px 0; }
+    .legende { display: flex; flex-wrap: wrap; gap: 6px 12px; font-size: 12px; color: var(--doux); padding: 10px 4px 0; }
     .legende span { display: inline-flex; align-items: center; gap: 5px; }
     .leaflet-popup-content { font-family: Poppins, system-ui, sans-serif; margin: 12px 14px; }
     .popup-nom { font-weight: 600; font-size: 14px; }
     .popup-detail { color: var(--doux); font-size: 12px; margin: 2px 0 8px; }
-    .popup-actions { display: flex; gap: 6px; }
+    .popup-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+    .repere { width: 26px; height: 26px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); background: linear-gradient(135deg, var(--bleu), var(--violet)); border: 3px solid #fff; box-shadow: 0 2px 6px rgba(0, 0, 0, .35); }
+    .numero { width: 30px; height: 30px; border-radius: 50%; color: #fff; font-weight: 700; font-size: 13px; display: grid; place-items: center; border: 3px solid #fff; box-shadow: 0 2px 6px rgba(0, 0, 0, .3); }
+    .numero.fait { background: #b8bdc8 !important; }
+    .depart { width: 18px; height: 18px; border-radius: 50%; background: var(--bleu); border: 4px solid #fff; box-shadow: 0 0 0 3px rgba(74, 134, 197, .35); }
 
     /* ---------- Barre d'outils & liste ---------- */
-    .outils { display: grid; grid-template-columns: 1fr auto auto; gap: 8px; margin-bottom: 12px; }
-    @media (max-width: 640px) { .outils { grid-template-columns: 1fr 1fr; } .outils .recherche { grid-column: span 2; } }
+    .outils { display: grid; grid-template-columns: 1fr auto auto auto; gap: 8px; margin-bottom: 12px; }
+    @media (max-width: 640px) { .outils { grid-template-columns: 1fr 1fr; } .outils .recherche, .outils #tri { grid-column: span 2; } }
     .compteur { font-size: 13px; color: var(--doux); margin: 0 2px 8px; }
     .fiche { background: var(--carte); border-radius: 12px; box-shadow: var(--ombre); margin-bottom: 10px; padding: 12px 14px 12px 18px; position: relative; overflow: hidden; }
     .fiche::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 5px; background: var(--couleur); }
+    .fiche.inactive { opacity: .78; }
     .fiche .haut { display: flex; align-items: flex-start; gap: 10px; cursor: pointer; }
     .fiche .nom { font-weight: 600; font-size: 15px; line-height: 1.3; }
     .fiche .lieu { font-size: 13px; color: var(--doux); margin-top: 1px; }
+    .fiche .contact { font-size: 13px; color: #454a57; margin-top: 6px; }
     .fiche .badges { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 10px; }
     .badge { font-size: 12px; background: #f1f3f8; color: #454a57; border-radius: 999px; padding: 3px 9px; white-space: nowrap; }
     .badge.statut { background: color-mix(in srgb, var(--couleur) 14%, white); color: color-mix(in srgb, var(--couleur) 80%, black); font-weight: 600; }
     .fiche .actions { display: flex; flex-wrap: wrap; gap: 6px; }
     .fiche .notes { font-size: 13px; color: #4a4f5c; background: #fafbfd; border-left: 3px solid var(--bord); padding: 6px 10px; margin-bottom: 10px; border-radius: 0 8px 8px 0; white-space: pre-line; }
     .vide { text-align: center; color: var(--doux); padding: 40px 16px; }
+
+    /* ---------- Tournée ---------- */
+    .tete-tournee { padding: 16px; margin-bottom: 12px; }
+    .tete-tournee h2 { font-size: 18px; margin: 0; }
+    .tete-tournee .btn { white-space: normal; text-align: center; }
+    @media (max-width: 640px) { .tete-tournee .btn { flex: 1 1 100%; } }
+    .tete-tournee .sous-titre { color: var(--doux); font-size: 13px; margin: 2px 0 10px; }
+    .progression { height: 8px; background: #eef1f7; border-radius: 999px; overflow: hidden; margin-bottom: 12px; }
+    .progression div { height: 100%; background: linear-gradient(90deg, var(--bleu), var(--violet)); border-radius: 999px; transition: width .3s; }
+    .etape { display: flex; gap: 12px; align-items: flex-start; }
+    .etape .numero { flex-shrink: 0; width: 32px; height: 32px; border: 0; box-shadow: none; }
+    .etape.faite { opacity: .6; }
+    .etape.faite .nom { text-decoration: line-through; }
 
     /* ---------- Bouton flottant ---------- */
     .fab { position: fixed; right: 20px; bottom: calc(20px + env(safe-area-inset-bottom)); z-index: 1000; border-radius: 999px; padding: 14px 20px; font-size: 16px; font-weight: 600; box-shadow: 0 6px 20px rgba(74, 134, 197, .45); background: linear-gradient(135deg, var(--bleu), var(--violet)); }
@@ -124,8 +150,18 @@
     .position-info { font-size: 13px; color: var(--doux); margin-top: 6px; }
     .position-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
     .aide { font-size: 13px; color: var(--doux); background: #f6f8fc; border-radius: 10px; padding: 10px 12px; margin-top: 12px; }
+    .aide.attention { background: #fff6e8; color: #8a5300; }
     .apercu-seuils { display: grid; gap: 6px; margin-top: 14px; font-size: 14px; }
     .apercu-seuils div { display: flex; align-items: center; gap: 8px; }
+    .choix-statut { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+    @media (max-width: 480px) { .choix-statut { grid-template-columns: repeat(2, 1fr); } }
+    .choix-statut label { margin: 0; border: 2px solid var(--bord); border-radius: 10px; padding: 8px 6px; text-align: center; cursor: pointer; font-size: 13px; color: var(--texte); }
+    .choix-statut input { display: none; }
+    .choix-statut label:has(input:checked) { border-color: var(--bleu); background: #eef4fb; font-weight: 600; }
+    .coches { display: grid; gap: 8px; margin-top: 6px; }
+    .coches label { margin: 0; display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--texte); font-weight: 400; border: 1px solid var(--bord); border-radius: 10px; padding: 10px 12px; cursor: pointer; }
+    .coches label .nb { margin-left: auto; color: var(--doux); font-size: 13px; }
+    .resume-tournee { margin-top: 14px; font-weight: 600; }
     @keyframes apparait { from { opacity: 0; } }
     @keyframes monte { from { transform: translateY(30px); opacity: 0; } }
 
@@ -153,6 +189,7 @@
         <img src="assets/logo.png" alt="Rengo">
         <span class="titre">Tirelires</span>
         <span class="espace"></span>
+        <button class="btn degrade" id="btnTournee">🧭 Tournée</button>
         <button class="btn leger icone" id="btnParametres" title="Paramètres" aria-label="Paramètres">⚙️</button>
         <button class="btn leger icone" id="btnDeconnexion" title="Se déconnecter" aria-label="Se déconnecter">🚪</button>
       </div>
@@ -169,9 +206,18 @@
           <div class="legende" id="legende"></div>
         </div>
 
-        <div>
+        <!-- Vue normale : liste -->
+        <div id="vueListe">
           <div class="outils">
-            <input class="recherche" id="recherche" type="search" placeholder="🔎 Commerce, ville, adresse…">
+            <input class="recherche" id="recherche" type="search" placeholder="🔎 Commerce, ville, adresse, contact…">
+            <select id="filtreStatut" aria-label="Statut">
+              <option value="actives">Actives</option>
+              <option value="en_place">En place</option>
+              <option value="a_poser">À poser</option>
+              <option value="refus">Refus</option>
+              <option value="retiree">Retirées</option>
+              <option value="toutes">Tous les statuts</option>
+            </select>
             <select id="filtreVille" aria-label="Ville"><option value="">Toutes les villes</option></select>
             <select id="tri" aria-label="Trier">
               <option value="urgence">Plus urgentes</option>
@@ -183,6 +229,9 @@
           <div class="compteur" id="compteur"></div>
           <div id="liste"></div>
         </div>
+
+        <!-- Vue tournée -->
+        <div id="vueTournee" class="cache"></div>
       </div>
     </main>
 
@@ -197,6 +246,16 @@
         <button type="button" class="btn leger icone" data-fermer aria-label="Fermer">✕</button>
       </div>
       <div class="corps">
+        <div id="blocStatut">
+          <label>Statut</label>
+          <div class="choix-statut">
+            <label><input type="radio" name="statut" value="en_place">🟢 En place</label>
+            <label><input type="radio" name="statut" value="a_poser">🎯 À poser</label>
+            <label><input type="radio" name="statut" value="refus">❌ Refus</label>
+            <label><input type="radio" name="statut" value="retiree">🔁 Retirée</label>
+          </div>
+        </div>
+
         <label for="champEntreprise">Commerce *</label>
         <input id="champEntreprise" name="entreprise" placeholder="Ex. Boulangerie du centre" required>
         <div class="deux">
@@ -206,7 +265,7 @@
             <datalist id="listeVilles"></datalist>
           </div>
           <div>
-            <label for="champDatePose">Date de pose</label>
+            <label for="champDatePose" id="libelleDatePose">Date de pose</label>
             <input id="champDatePose" name="date_pose" type="date">
           </div>
         </div>
@@ -222,7 +281,7 @@
         <div id="miniCarte"></div>
         <div class="position-info" id="positionInfo">Touche la carte pour placer le point (tu peux ensuite le déplacer).</div>
 
-        <div class="deux">
+        <div id="blocVidage" class="deux">
           <div>
             <label for="champVidage">Dernier vidage</label>
             <input id="champVidage" name="dernier_vidage" type="date">
@@ -231,8 +290,26 @@
             <button type="button" class="btn leger petit" id="btnVidageAujourdhui" style="margin-bottom:4px">Aujourd'hui</button>
           </div>
         </div>
+
+        <div id="blocContact">
+          <div class="section">Contact du commerçant</div>
+          <div class="deux">
+            <div>
+              <label for="champContactNom">Nom</label>
+              <input id="champContactNom" name="contact_nom" placeholder="Ex. Karim (gérant)">
+            </div>
+            <div>
+              <label for="champContactTel">Téléphone</label>
+              <input id="champContactTel" name="contact_tel" type="tel" placeholder="06 12 34 56 78">
+            </div>
+          </div>
+          <label for="champHoraires">Horaires d'ouverture</label>
+          <input id="champHoraires" name="horaires" placeholder="Ex. 7h–20h, fermé le lundi">
+        </div>
+        <div id="aideMigration" class="aide attention cache">Pour activer les statuts et le contact du commerçant, lance <b>migration_v3.sql</b> dans Supabase.</div>
+
         <label for="champNotes">Notes</label>
-        <textarea id="champNotes" name="notes" rows="3" placeholder="Contact, horaires, remarques…"></textarea>
+        <textarea id="champNotes" name="notes" rows="3" placeholder="Remarques, emplacement dans le magasin…"></textarea>
         <div id="erreurFiche" class="erreur"></div>
       </div>
       <div class="pied">
@@ -240,6 +317,36 @@
         <span class="espace"></span>
         <button type="button" class="btn leger" data-fermer>Annuler</button>
         <button class="btn" id="btnEnregistrer">Enregistrer</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- ================= Fenêtre : préparer une tournée ================= -->
+  <div class="voile cache" id="fenetreTournee">
+    <form class="fenetre" id="formTournee" style="max-width:460px">
+      <div class="tete">
+        <h2>🧭 Préparer une tournée</h2>
+        <button type="button" class="btn leger icone" data-fermer aria-label="Fermer">✕</button>
+      </div>
+      <div class="corps">
+        <label for="tourneeVille">Ville</label>
+        <select id="tourneeVille" required></select>
+
+        <label>Tirelires à inclure</label>
+        <div class="coches" id="tourneeCoches"></div>
+
+        <label>Point de départ</label>
+        <div class="coches">
+          <label><input type="radio" name="depart" value="position" checked> 📍 Ma position actuelle</label>
+          <label><input type="radio" name="depart" value="libre"> Le trajet le plus court, peu importe le départ</label>
+        </div>
+        <div class="resume-tournee" id="tourneeResume"></div>
+        <div class="aide">L'ordre est calculé pour limiter la distance à parcourir (à vol d'oiseau). Les tirelires sans position GPS ne peuvent pas être incluses.</div>
+      </div>
+      <div class="pied">
+        <span class="espace"></span>
+        <button type="button" class="btn leger" data-fermer>Annuler</button>
+        <button class="btn degrade" id="btnLancerTournee">Lancer la tournée</button>
       </div>
     </form>
   </div>
@@ -252,7 +359,7 @@
         <button type="button" class="btn leger icone" data-fermer aria-label="Fermer">✕</button>
       </div>
       <div class="corps">
-        <p style="margin:0;color:var(--doux);font-size:14px">Couleur d'une tirelire selon le temps écoulé depuis son dernier vidage (ou sa pose si elle n'a jamais été vidée).</p>
+        <p style="margin:0;color:var(--doux);font-size:14px">Couleur d'une tirelire en place selon le temps écoulé depuis son dernier vidage (ou sa pose si elle n'a jamais été vidée).</p>
         <div class="deux">
           <div>
             <label for="champOrange">Orange à partir de (mois)</label>
@@ -280,19 +387,32 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
   <script>
     const $ = (id) => document.getElementById(id);
-    let code = '';
-    try { code = localStorage.getItem('rengo-code') || ''; } catch {}
+    const stockage = {
+      lire(cle) { try { return localStorage.getItem(cle); } catch { return null; } },
+      ecrire(cle, valeur) { try { valeur === null ? localStorage.removeItem(cle) : localStorage.setItem(cle, valeur); } catch {} },
+    };
 
+    let code = stockage.lire('rengo-code') || '';
     let tirelires = [];
     let seuils = { orange: 3, rouge: 5 };
-    let filtreStatut = '';
+    let v3 = true; // colonnes statut / contact présentes en base (migration_v3.sql lancée)
+    let filtreTuile = '';
     let carte, calque, marqueurs = {};
     let miniCarte, marqueurFiche = null, positionFiche = null, ficheEnCours = null;
+    let tournee = null;
 
-    const STATUTS = {
-      ok: { libelle: 'OK', couleur: 'var(--vert)', hex: '#22a861' },
-      bientot: { libelle: 'Bientôt', couleur: 'var(--orange)', hex: '#f08c1a' },
-      urgent: { libelle: 'À vider', couleur: 'var(--rouge)', hex: '#e04848' },
+    // Urgence de vidage (tirelires en place)
+    const URGENCES = {
+      ok: { libelle: 'OK', hex: '#22a861' },
+      bientot: { libelle: 'Bientôt', hex: '#f08c1a' },
+      urgent: { libelle: 'À vider', hex: '#e04848' },
+    };
+    // Statut de la tirelire
+    const ETATS = {
+      en_place: { libelle: 'En place', icone: '🟢' },
+      a_poser: { libelle: 'À poser', icone: '🎯', hex: '#4a86c5' },
+      refus: { libelle: 'Refus', icone: '❌', hex: '#8a8f9c' },
+      retiree: { libelle: 'Retirée', icone: '🔁', hex: '#5d6270' },
     };
 
     // ================= Utilitaires =================
@@ -302,6 +422,9 @@
     const dateFr = (d, court) => new Date(d + 'T00:00:00').toLocaleDateString('fr-FR', court ? { day: 'numeric', month: 'short' } : { day: 'numeric', month: 'short', year: 'numeric' });
     const aPosition = (t) => t.lat != null && t.lng != null;
     const pluriel = (n, mot) => `${n} ${mot}${n > 1 ? 's' : ''}`;
+    const etat = (t) => t.statut || 'en_place';
+    const lienTel = (tel) => 'tel:' + String(tel).replace(/[^\d+]/g, '');
+    const lienItineraire = (t) => `https://www.google.com/maps/dir/?api=1&destination=${t.lat},${t.lng}`;
 
     function duree(j) {
       if (j <= 0) return "aujourd'hui";
@@ -313,10 +436,12 @@
     }
 
     const dateReference = (t) => t.dernier_vidage || t.date_pose;
-    function statut(t) {
+    function urgence(t) {
       const mois = joursDepuis(dateReference(t)) / 30.44;
       return mois < seuils.orange ? 'ok' : mois < seuils.rouge ? 'bientot' : 'urgent';
     }
+    // Couleur affichée : urgence pour une tirelire en place, couleur du statut sinon
+    const couleur = (t) => (etat(t) === 'en_place' ? URGENCES[urgence(t)].hex : ETATS[etat(t)].hex);
     function prochainPassage(t) {
       const d = new Date(dateReference(t) + 'T00:00:00');
       d.setDate(d.getDate() + Math.round(seuils.orange * 30.44));
@@ -343,6 +468,23 @@
       return data;
     }
 
+    async function modifier(t, champs) {
+      const [maj] = await api('PATCH', `tirelires?id=${t.id}`, champs);
+      Object.assign(t, maj);
+      return t;
+    }
+
+    function maPosition() {
+      return new Promise((ok, echec) => {
+        if (!navigator.geolocation) return echec(new Error('Géolocalisation non disponible sur cet appareil'));
+        navigator.geolocation.getCurrentPosition(
+          (p) => ok({ lat: p.coords.latitude, lng: p.coords.longitude, precision: p.coords.accuracy }),
+          () => echec(new Error("Impossible d'obtenir ta position. Vérifie que la localisation est autorisée pour ce site.")),
+          { enableHighAccuracy: true, timeout: 15000 }
+        );
+      });
+    }
+
     // Adresse lisible à partir de coordonnées (OpenStreetMap)
     async function adresseDepuisPosition(lat, lng) {
       try {
@@ -364,7 +506,7 @@
     };
 
     function deconnexion() {
-      try { localStorage.removeItem('rengo-code'); } catch {}
+      stockage.ecrire('rengo-code', null);
       code = '';
       $('app').classList.add('cache');
       $('connexion').classList.remove('cache');
@@ -374,17 +516,19 @@
     async function demarrer() {
       const [liste, params] = await Promise.all([api('GET', 'tirelires'), api('GET', 'parametres').catch(() => null)]);
       tirelires = liste;
+      v3 = !tirelires.length || 'statut' in tirelires[0];
       if (params) seuils = { orange: params.seuil_orange_mois, rouge: params.seuil_rouge_mois };
-      try { localStorage.setItem('rengo-code', code); } catch {}
+      stockage.ecrire('rengo-code', code);
       $('connexion').classList.add('cache');
       $('app').classList.remove('cache');
       if (!carte) initCarte();
-      afficher(true);
+      chargerTournee();
+      rafraichir(true);
     }
 
     // ================= Carte principale =================
     function initCarte() {
-      carte = L.map('carte', { zoomControl: true }).setView([49.1, 2.5], 9);
+      carte = L.map('carte').setView([49.1, 2.5], 9);
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap', maxZoom: 19 }).addTo(carte);
       calque = L.layerGroup().addTo(carte);
       carte.on('popupopen', (e) => {
@@ -392,51 +536,88 @@
       });
     }
 
-    function lienItineraire(t) {
-      return `https://www.google.com/maps/dir/?api=1&destination=${t.lat},${t.lng}`;
+    function boutonsAction(t, dansPopup) {
+      const e = etat(t);
+      const b = [];
+      if (e === 'en_place') b.push(`<button class="btn petit" data-action="vider" data-id="${t.id}">💧 Vidée</button>`);
+      if (e === 'a_poser') b.push(`<button class="btn vert petit" data-action="poser" data-id="${t.id}">✅ Posée</button>`);
+      b.push(`<button class="btn leger petit" data-action="modifier" data-id="${t.id}">✏️ Modifier</button>`);
+      if (aPosition(t)) b.push(`<a class="btn leger petit" target="_blank" rel="noopener" href="${lienItineraire(t)}">🧭${dansPopup ? '' : ' Y aller'}</a>`);
+      else if (!dansPopup) b.push(`<button class="btn leger petit" data-action="modifier" data-id="${t.id}">📍 Placer</button>`);
+      if (t.contact_tel) b.push(`<a class="btn leger petit" href="${lienTel(t.contact_tel)}">📞${dansPopup ? '' : ' Appeler'}</a>`);
+      return b.join('');
     }
 
-    // ================= Affichage =================
+    function marqueur(t) {
+      const e = etat(t);
+      const style = e === 'en_place'
+        ? { radius: 9, color: '#fff', weight: 2.5, fillColor: couleur(t), fillOpacity: 1 }
+        : e === 'a_poser'
+          ? { radius: 8, color: ETATS.a_poser.hex, weight: 3, fillColor: '#fff', fillOpacity: 1 }
+          : { radius: 6, color: '#fff', weight: 2, fillColor: ETATS[e].hex, fillOpacity: .9 };
+      const detail = e === 'en_place'
+        ? `${URGENCES[urgence(t)].libelle} · ${t.dernier_vidage ? 'vidée ' + duree(joursDepuis(t.dernier_vidage)) : 'posée ' + duree(joursDepuis(t.date_pose))}`
+        : `${ETATS[e].icone} ${ETATS[e].libelle}`;
+      return L.circleMarker([t.lat, t.lng], style).bindPopup(`
+        <div class="popup-nom">${echapper(t.entreprise)}</div>
+        <div class="popup-detail">${echapper(t.adresse || t.ville || '')}<br>${detail}</div>
+        <div class="popup-actions">${boutonsAction(t, true)}</div>`);
+    }
+
+    // ================= Vue liste =================
     function filtrees() {
       const q = $('recherche').value.trim().toLowerCase();
       const ville = $('filtreVille').value;
+      const vue = $('filtreStatut').value;
       return tirelires.filter((t) => {
+        const e = etat(t);
+        if (vue === 'actives' ? !['en_place', 'a_poser'].includes(e) : vue !== 'toutes' && e !== vue) return false;
         if (ville && t.ville !== ville) return false;
-        if (filtreStatut === 'sans' ? aPosition(t) : filtreStatut && statut(t) !== filtreStatut) return false;
-        return !q || `${t.entreprise} ${t.ville || ''} ${t.adresse || ''} ${t.notes || ''}`.toLowerCase().includes(q);
+        if (['ok', 'bientot', 'urgent'].includes(filtreTuile) && (e !== 'en_place' || urgence(t) !== filtreTuile)) return false;
+        if (filtreTuile === 'a_poser' && e !== 'a_poser') return false;
+        if (filtreTuile === 'sans' && aPosition(t)) return false;
+        return !q || [t.entreprise, t.ville, t.adresse, t.notes, t.contact_nom, t.contact_tel].join(' ').toLowerCase().includes(q);
       });
     }
 
     function trier(liste) {
-      const mode = $('tri').value;
+      const ordreEtat = { en_place: 0, a_poser: 1, refus: 2, retiree: 3 };
       const cmp = {
-        urgence: (a, b) => dateReference(a).localeCompare(dateReference(b)),
+        urgence: (a, b) => ordreEtat[etat(a)] - ordreEtat[etat(b)] || dateReference(a).localeCompare(dateReference(b)),
         recentes: (a, b) => b.date_pose.localeCompare(a.date_pose) || b.id - a.id,
         nom: (a, b) => a.entreprise.localeCompare(b.entreprise, 'fr'),
         ville: (a, b) => (a.ville || '').localeCompare(b.ville || '', 'fr') || a.entreprise.localeCompare(b.entreprise, 'fr'),
-      }[mode];
+      }[$('tri').value];
       return [...liste].sort(cmp);
     }
 
     function afficherStats() {
-      const n = { ok: 0, bientot: 0, urgent: 0, sans: 0 };
-      tirelires.forEach((t) => { n[statut(t)]++; if (!aPosition(t)) n.sans++; });
+      const n = { actives: 0, ok: 0, bientot: 0, urgent: 0, a_poser: 0, sans: 0 };
+      tirelires.forEach((t) => {
+        const e = etat(t);
+        if (e === 'en_place') n[urgence(t)]++;
+        if (e === 'a_poser') n.a_poser++;
+        if (e === 'en_place' || e === 'a_poser') { n.actives++; if (!aPosition(t)) n.sans++; }
+      });
       const tuiles = [
-        ['', tirelires.length, 'Toutes', '#4a86c5'],
-        ['ok', n.ok, 'OK', STATUTS.ok.hex],
-        ['bientot', n.bientot, 'Bientôt', STATUTS.bientot.hex],
-        ['urgent', n.urgent, 'À vider', STATUTS.urgent.hex],
-        ['sans', n.sans, 'Sans GPS', '#9aa0ad'],
+        ['', n.actives, 'Actives', '#4a86c5', ''],
+        ['ok', n.ok, 'OK', URGENCES.ok.hex, ''],
+        ['bientot', n.bientot, 'Bientôt', URGENCES.bientot.hex, ''],
+        ['urgent', n.urgent, 'À vider', URGENCES.urgent.hex, ''],
+        ['a_poser', n.a_poser, 'À poser', ETATS.a_poser.hex, 'creux'],
+        ['sans', n.sans, 'Sans GPS', '#9aa0ad', ''],
       ];
-      $('stats').innerHTML = tuiles.map(([cle, nb, libelle, couleur]) => `
-        <button class="tuile ${filtreStatut === cle ? 'actif' : ''}" data-filtre="${cle}">
+      $('stats').innerHTML = tuiles.map(([cle, nb, libelle, hex, classe]) => `
+        <button class="tuile ${filtreTuile === cle ? 'actif' : ''}" data-filtre="${cle}">
           <div class="nombre">${nb}</div>
-          <div class="libelle"><span class="point" style="background:${couleur}"></span>${libelle}</div>
+          <div class="libelle"><span class="point ${classe}" style="background:${hex}"></span>${libelle}</div>
         </button>`).join('');
       $('legende').innerHTML = `
-        <span><span class="point" style="background:${STATUTS.ok.hex}"></span>vidée il y a moins de ${seuils.orange} mois</span>
-        <span><span class="point" style="background:${STATUTS.bientot.hex}"></span>${seuils.orange} à ${seuils.rouge} mois</span>
-        <span><span class="point" style="background:${STATUTS.urgent.hex}"></span>plus de ${seuils.rouge} mois</span>`;
+        <span><span class="point" style="background:${URGENCES.ok.hex}"></span>vidée il y a moins de ${seuils.orange} mois</span>
+        <span><span class="point" style="background:${URGENCES.bientot.hex}"></span>${seuils.orange} à ${seuils.rouge} mois</span>
+        <span><span class="point" style="background:${URGENCES.urgent.hex}"></span>plus de ${seuils.rouge} mois</span>
+        <span><span class="point creux"></span>à poser</span>
+        <span><span class="point" style="background:${ETATS.refus.hex}"></span>refus / retirée</span>`;
     }
 
     function afficherVilles() {
@@ -446,113 +627,343 @@
       $('listeVilles').innerHTML = villes.map((v) => `<option value="${echapper(v)}">`).join('');
     }
 
-    function afficher(recadrer) {
-      afficherStats();
-      afficherVilles();
+    function badges(t) {
+      const e = etat(t);
+      const b = [];
+      if (e === 'en_place') {
+        const prochain = prochainPassage(t);
+        b.push(`<span class="badge statut">${URGENCES[urgence(t)].libelle}</span>`);
+        b.push(`<span class="badge">Posée ${duree(joursDepuis(t.date_pose))}</span>`);
+        b.push(`<span class="badge">${t.dernier_vidage ? 'Vidée ' + duree(joursDepuis(t.dernier_vidage)) : 'Jamais vidée'}</span>`);
+        b.push(`<span class="badge">${prochain < aujourdhui() ? 'Passage dépassé depuis le ' : 'Repasser avant le '}${dateFr(prochain, true)}</span>`);
+      } else {
+        b.push(`<span class="badge statut">${ETATS[e].icone} ${ETATS[e].libelle}</span>`);
+        if (e === 'a_poser') b.push(`<span class="badge">Repérée ${duree(joursDepuis(t.date_pose))}</span>`);
+        if (e === 'retiree' && t.dernier_vidage) b.push(`<span class="badge">Dernier vidage le ${dateFr(t.dernier_vidage)}</span>`);
+      }
+      if (!aPosition(t) && (e === 'en_place' || e === 'a_poser')) b.push('<span class="badge" style="background:#fff3e0;color:#9a5a00">📍 Sans position</span>');
+      return b.join('');
+    }
+
+    function contact(t) {
+      const parts = [t.contact_nom && `👤 ${echapper(t.contact_nom)}`, t.contact_tel && `📞 ${echapper(t.contact_tel)}`, t.horaires && `🕒 ${echapper(t.horaires)}`].filter(Boolean);
+      return parts.length ? `<div class="contact">${parts.join(' · ')}</div>` : '';
+    }
+
+    function afficherListe(recadrer) {
       const visibles = trier(filtrees());
       const placees = visibles.filter(aPosition);
 
-      // Marqueurs
       calque.clearLayers();
       marqueurs = {};
-      placees.forEach((t) => {
-        const s = statut(t);
-        marqueurs[t.id] = L.circleMarker([t.lat, t.lng], { radius: 9, color: '#fff', weight: 2.5, fillColor: STATUTS[s].hex, fillOpacity: 1 })
-          .bindPopup(`
-            <div class="popup-nom">${echapper(t.entreprise)}</div>
-            <div class="popup-detail">${echapper(t.adresse || t.ville || '')}<br>${STATUTS[s].libelle} · ${t.dernier_vidage ? 'vidée ' + duree(joursDepuis(t.dernier_vidage)) : 'posée ' + duree(joursDepuis(t.date_pose))}</div>
-            <div class="popup-actions">
-              <button class="btn petit" data-action="vider" data-id="${t.id}">💧 Vidée</button>
-              <button class="btn leger petit" data-action="modifier" data-id="${t.id}">✏️ Modifier</button>
-              <a class="btn leger petit" style="text-decoration:none" target="_blank" rel="noopener" href="${lienItineraire(t)}">🧭</a>
-            </div>`)
-          .addTo(calque);
-      });
+      placees.forEach((t) => (marqueurs[t.id] = marqueur(t).addTo(calque)));
       if (recadrer && placees.length) carte.fitBounds(placees.map((t) => [t.lat, t.lng]), { padding: [30, 30], maxZoom: 15 });
 
-      // Liste
       const sans = visibles.length - placees.length;
       $('compteur').textContent = pluriel(visibles.length, 'tirelire') + (sans ? ` · ${sans} sans position` : '');
       if (!visibles.length) {
-        $('liste').innerHTML = `<div class="vide">Aucune tirelire ne correspond.<br><br><button class="btn leger" onclick="reinitialiserFiltres()">Effacer les filtres</button></div>`;
+        $('liste').innerHTML = `<div class="vide">Aucune tirelire ne correspond.<br><br><button class="btn leger" data-action="reinitialiser">Effacer les filtres</button></div>`;
         return;
       }
-      $('liste').innerHTML = visibles.map((t) => {
-        const s = statut(t);
-        const prochain = prochainPassage(t);
-        const enRetard = prochain < aujourdhui();
-        return `
-        <article class="fiche" style="--couleur:${STATUTS[s].couleur}">
+      $('liste').innerHTML = visibles.map((t) => `
+        <article class="fiche ${['refus', 'retiree'].includes(etat(t)) ? 'inactive' : ''}" style="--couleur:${couleur(t)}">
           <div class="haut" data-action="centrer" data-id="${t.id}">
             <div style="flex:1;min-width:0">
               <div class="nom">${echapper(t.entreprise)}</div>
               <div class="lieu">${echapper([t.ville, t.adresse].filter(Boolean).join(' · ')) || '&nbsp;'}</div>
+              ${contact(t)}
             </div>
           </div>
-          <div class="badges">
-            <span class="badge statut">${STATUTS[s].libelle}</span>
-            <span class="badge">Posée ${duree(joursDepuis(t.date_pose))}</span>
-            <span class="badge">${t.dernier_vidage ? 'Vidée ' + duree(joursDepuis(t.dernier_vidage)) : 'Jamais vidée'}</span>
-            <span class="badge">${enRetard ? 'Passage dépassé depuis le ' : 'Repasser avant le '}${dateFr(prochain, true)}</span>
-            ${aPosition(t) ? '' : '<span class="badge" style="background:#fff3e0;color:#9a5a00">📍 Sans position</span>'}
-          </div>
+          <div class="badges">${badges(t)}</div>
           ${t.notes ? `<div class="notes">${echapper(t.notes)}</div>` : ''}
-          <div class="actions">
-            <button class="btn petit" data-action="vider" data-id="${t.id}">💧 Vidée</button>
-            <button class="btn leger petit" data-action="modifier" data-id="${t.id}">✏️ Modifier</button>
-            ${aPosition(t)
-              ? `<a class="btn leger petit" style="text-decoration:none" target="_blank" rel="noopener" href="${lienItineraire(t)}">🧭 Y aller</a>`
-              : `<button class="btn leger petit" data-action="modifier" data-id="${t.id}">📍 Placer</button>`}
-          </div>
-        </article>`;
-      }).join('');
+          <div class="actions">${boutonsAction(t, false)}</div>
+        </article>`).join('');
     }
 
-    function reinitialiserFiltres() {
-      filtreStatut = '';
-      $('recherche').value = '';
-      $('filtreVille').value = '';
-      afficher(true);
+    function rafraichir(recadrer) {
+      afficherStats();
+      afficherVilles();
+      const enTournee = !!tournee;
+      $('vueListe').classList.toggle('cache', enTournee);
+      $('vueTournee').classList.toggle('cache', !enTournee);
+      $('btnAjouter').classList.toggle('cache', enTournee);
+      $('stats').classList.toggle('cache', enTournee);
+      $('btnTournee').classList.toggle('cache', enTournee);
+      if (enTournee) afficherTournee(recadrer);
+      else afficherListe(recadrer);
     }
 
-    $('recherche').oninput = () => afficher(false);
-    $('filtreVille').onchange = () => afficher(true);
-    $('tri').onchange = () => afficher(false);
+    $('recherche').oninput = () => afficherListe(false);
+    $('filtreStatut').onchange = () => { filtreTuile = ''; rafraichir(true); };
+    $('filtreVille').onchange = () => rafraichir(true);
+    $('tri').onchange = () => afficherListe(false);
     $('stats').onclick = (e) => {
       const tuile = e.target.closest('[data-filtre]');
       if (!tuile) return;
-      filtreStatut = filtreStatut === tuile.dataset.filtre ? '' : tuile.dataset.filtre;
-      afficher(true);
+      filtreTuile = filtreTuile === tuile.dataset.filtre ? '' : tuile.dataset.filtre;
+      $('filtreStatut').value = 'actives';
+      rafraichir(true);
     };
-    $('liste').onclick = (e) => {
-      const el = e.target.closest('[data-action]');
-      if (el) action(el.dataset.action, Number(el.dataset.id));
-    };
+    document.addEventListener('click', (e) => {
+      const el = e.target.closest('#liste [data-action], #vueTournee [data-action]');
+      if (!el) return;
+      if (el.tagName === 'A') e.preventDefault();
+      action(el.dataset.action, Number(el.dataset.id));
+    });
 
     async function action(nom, id) {
+      if (nom === 'reinitialiser') {
+        filtreTuile = '';
+        $('recherche').value = '';
+        $('filtreVille').value = '';
+        $('filtreStatut').value = 'actives';
+        return rafraichir(true);
+      }
+      if (nom.startsWith('t-')) return actionTournee(nom, id);
       const t = tirelires.find((x) => x.id === id);
       if (!t) return;
-      if (nom === 'centrer') {
-        if (!aPosition(t)) return ouvrirFiche(t);
-        carte.setView([t.lat, t.lng], 17);
-        marqueurs[t.id] && marqueurs[t.id].openPopup();
-        if (window.innerWidth < 960) window.scrollTo({ top: 0, behavior: 'smooth' });
-      } else if (nom === 'modifier') {
-        carte.closePopup();
-        ouvrirFiche(t);
-      } else if (nom === 'vider') {
-        if (!confirm(`Marquer « ${t.entreprise} » comme vidée aujourd'hui ?`)) return;
-        try {
-          const [maj] = await api('PATCH', `tirelires?id=${t.id}`, { dernier_vidage: aujourdhui() });
-          Object.assign(t, maj);
+      try {
+        if (nom === 'centrer') {
+          if (!aPosition(t)) return ouvrirFiche(t);
+          carte.setView([t.lat, t.lng], 17);
+          marqueurs[t.id] && marqueurs[t.id].openPopup();
+          if (window.innerWidth < 960) window.scrollTo({ top: 0, behavior: 'smooth' });
+        } else if (nom === 'modifier') {
           carte.closePopup();
-          afficher(false);
+          ouvrirFiche(t);
+        } else if (nom === 'vider') {
+          if (!confirm(`Marquer « ${t.entreprise} » comme vidée aujourd'hui ?`)) return;
+          await modifier(t, { dernier_vidage: aujourdhui() });
+          carte.closePopup();
+          rafraichir(false);
           toast('💧 Vidage enregistré');
-        } catch (err) { alert(err.message); }
-      }
+        } else if (nom === 'poser') {
+          if (!confirm(`La tirelire est posée chez « ${t.entreprise} » aujourd'hui ?`)) return;
+          await modifier(t, { statut: 'en_place', date_pose: aujourdhui() });
+          carte.closePopup();
+          rafraichir(false);
+          toast('✅ Tirelire posée');
+        }
+      } catch (err) { alert(err.message); }
     }
 
-    // ================= Fenêtre ajouter / modifier =================
+    // ================= Tournée =================
+    // Distance à vol d'oiseau en km
+    function distance(a, b) {
+      const R = 6371, rad = Math.PI / 180;
+      const dLat = (b.lat - a.lat) * rad, dLng = (b.lng - a.lng) * rad;
+      const h = Math.sin(dLat / 2) ** 2 + Math.cos(a.lat * rad) * Math.cos(b.lat * rad) * Math.sin(dLng / 2) ** 2;
+      return 2 * R * Math.asin(Math.sqrt(h));
+    }
+    function longueur(ordre, depart) {
+      let total = 0, precedent = depart;
+      for (const p of ordre) { if (precedent) total += distance(precedent, p); precedent = p; }
+      return total;
+    }
+    // Amélioration « 2-opt » : on inverse des portions du trajet tant que ça le raccourcit.
+    function deuxOpt(ordre, depart) {
+      const pts = depart ? [depart, ...ordre] : [...ordre];
+      const debut = depart ? 1 : 0;
+      for (let ameliore = true, tours = 0; ameliore && tours < 50; tours++) {
+        ameliore = false;
+        for (let i = debut; i < pts.length - 1; i++) {
+          for (let k = i + 1; k < pts.length; k++) {
+            const a = pts[i - 1], b = pts[i], c = pts[k], d = pts[k + 1];
+            const avant = (a ? distance(a, b) : 0) + (d ? distance(c, d) : 0);
+            const apres = (a ? distance(a, c) : 0) + (d ? distance(b, d) : 0);
+            if (apres < avant - 1e-9) {
+              pts.splice(i, k - i + 1, ...pts.slice(i, k + 1).reverse());
+              ameliore = true;
+            }
+          }
+        }
+      }
+      return depart ? pts.slice(1) : pts;
+    }
+    // Ordre de passage : plus proche voisin puis 2-opt (depuis le départ, ou meilleur point de départ).
+    function optimiser(points, depart) {
+      let meilleur = null;
+      for (const premier of depart ? [null] : points) {
+        const reste = points.filter((p) => p !== premier);
+        const ordre = premier ? [premier] : [];
+        let courant = premier || depart;
+        while (reste.length) {
+          let iMin = 0;
+          reste.forEach((p, i) => { if (distance(courant, p) < distance(courant, reste[iMin])) iMin = i; });
+          courant = reste.splice(iMin, 1)[0];
+          ordre.push(courant);
+        }
+        const ameliore = deuxOpt(ordre, depart);
+        const km = longueur(ameliore, depart);
+        if (!meilleur || km < meilleur.km) meilleur = { ordre: ameliore, km };
+      }
+      return meilleur;
+    }
+
+    function candidatsTournee() {
+      const ville = $('tourneeVille').value;
+      const inclus = [...document.querySelectorAll('#tourneeCoches input:checked')].map((c) => c.value);
+      const dansVille = tirelires.filter((t) => t.ville === ville && inclus.includes(etat(t) === 'en_place' ? urgence(t) : etat(t)));
+      return { placees: dansVille.filter(aPosition), sans: dansVille.filter((t) => !aPosition(t)).length };
+    }
+
+    function majPreparation() {
+      const ville = $('tourneeVille').value;
+      const deLaVille = tirelires.filter((t) => t.ville === ville && aPosition(t));
+      const compte = (cle) => deLaVille.filter((t) => (etat(t) === 'en_place' ? urgence(t) : etat(t)) === cle).length;
+      const coches = [...document.querySelectorAll('#tourneeCoches input')].reduce((m, c) => ({ ...m, [c.value]: c.checked }), { urgent: true, bientot: true, ok: false, a_poser: false });
+      $('tourneeCoches').innerHTML = [
+        ['urgent', `<span class="point" style="background:${URGENCES.urgent.hex}"></span> À vider`],
+        ['bientot', `<span class="point" style="background:${URGENCES.bientot.hex}"></span> Bientôt`],
+        ['ok', `<span class="point" style="background:${URGENCES.ok.hex}"></span> OK (vidées récemment)`],
+        ['a_poser', '<span class="point creux"></span> À poser (repérages)'],
+      ].map(([cle, libelle]) => `<label><input type="checkbox" value="${cle}" ${coches[cle] ? 'checked' : ''}> ${libelle}<span class="nb">${compte(cle)}</span></label>`).join('');
+      const { placees, sans } = candidatsTournee();
+      $('tourneeResume').textContent = `${pluriel(placees.length, 'arrêt')}` + (sans ? ` · ${sans} sans GPS non incluse${sans > 1 ? 's' : ''}` : '');
+      $('btnLancerTournee').disabled = !placees.length;
+    }
+
+    $('btnTournee').onclick = () => {
+      const villes = [...new Set(tirelires.filter((t) => aPosition(t) && ['en_place', 'a_poser'].includes(etat(t))).map((t) => t.ville).filter(Boolean))]
+        .sort((a, b) => a.localeCompare(b, 'fr'));
+      if (!villes.length) return alert('Aucune tirelire placée sur la carte pour le moment.');
+      const choix = $('filtreVille').value;
+      $('tourneeVille').innerHTML = villes.map((v) => `<option ${v === choix ? 'selected' : ''}>${echapper(v)}</option>`).join('');
+      $('tourneeCoches').innerHTML = '';
+      majPreparation();
+      ouvrirFenetre('fenetreTournee');
+    };
+    $('tourneeVille').onchange = majPreparation;
+    $('tourneeCoches').onchange = majPreparation;
+
+    $('formTournee').onsubmit = async (e) => {
+      e.preventDefault();
+      const { placees } = candidatsTournee();
+      if (!placees.length) return;
+      const bouton = $('btnLancerTournee');
+      bouton.disabled = true;
+      let depart = null;
+      if (e.target.depart.value === 'position') {
+        bouton.textContent = '⏳ Localisation…';
+        try { const p = await maPosition(); depart = { lat: p.lat, lng: p.lng }; }
+        catch { toast('Position indisponible : trajet calculé sans point de départ'); }
+      }
+      bouton.textContent = 'Lancer la tournée';
+      bouton.disabled = false;
+      const { ordre, km } = optimiser(placees, depart);
+      tournee = { ville: $('tourneeVille').value, ordre: ordre.map((t) => t.id), faits: {}, depart, km };
+      sauverTournee();
+      fermerFenetres();
+      rafraichir(true);
+      window.scrollTo({ top: 0 });
+    };
+
+    function sauverTournee() { stockage.ecrire('rengo-tournee', tournee ? JSON.stringify(tournee) : null); }
+    function chargerTournee() {
+      try { tournee = JSON.parse(stockage.lire('rengo-tournee')); } catch { tournee = null; }
+      if (tournee) tournee.ordre = tournee.ordre.filter((id) => tirelires.some((t) => t.id === id && aPosition(t)));
+      if (tournee && !tournee.ordre.length) tournee = null;
+    }
+
+    function afficherTournee(recadrer) {
+      const etapes = tournee.ordre.map((id) => tirelires.find((t) => t.id === id)).filter(Boolean);
+      const restantes = etapes.filter((t) => !tournee.faits[t.id]);
+      const nbFaits = etapes.length - restantes.length;
+
+      // Carte : trajet + arrêts numérotés
+      calque.clearLayers();
+      marqueurs = {};
+      const trace = [tournee.depart, ...etapes].filter(Boolean).map((p) => [p.lat, p.lng]);
+      L.polyline(trace, { color: '#8a6bb1', weight: 4, opacity: .7, dashArray: '8 8' }).addTo(calque);
+      if (tournee.depart) {
+        L.marker([tournee.depart.lat, tournee.depart.lng], { icon: L.divIcon({ className: '', html: '<div class="depart"></div>', iconSize: [18, 18], iconAnchor: [9, 9] }) })
+          .bindPopup('<b>Départ</b>').addTo(calque);
+      }
+      etapes.forEach((t, i) => {
+        const fait = !!tournee.faits[t.id];
+        const icone = L.divIcon({ className: '', html: `<div class="numero ${fait ? 'fait' : ''}" style="background:${couleur(t)}">${fait ? '✓' : i + 1}</div>`, iconSize: [30, 30], iconAnchor: [15, 15] });
+        marqueurs[t.id] = L.marker([t.lat, t.lng], { icon: icone, zIndexOffset: fait ? 0 : 1000 })
+          .bindPopup(`<div class="popup-nom">${i + 1}. ${echapper(t.entreprise)}</div><div class="popup-detail">${echapper(t.adresse || t.ville || '')}</div>`)
+          .addTo(calque);
+      });
+      if (recadrer && trace.length) carte.fitBounds(trace, { padding: [30, 30], maxZoom: 16 });
+
+      // Google Maps accepte 3 étapes + la destination depuis un téléphone : on ouvre les 4 prochains arrêts.
+      const prochains = restantes.slice(0, 4);
+      const lienProchains = prochains.length
+        ? `https://www.google.com/maps/dir/?api=1&travelmode=driving&destination=${prochains.at(-1).lat},${prochains.at(-1).lng}` +
+          (prochains.length > 1 ? `&waypoints=${prochains.slice(0, -1).map((t) => `${t.lat},${t.lng}`).join('|')}` : '')
+        : '';
+
+      const km = tournee.km < 10 ? tournee.km.toFixed(1).replace('.', ',') : Math.round(tournee.km);
+      $('vueTournee').innerHTML = `
+        <div class="panneau tete-tournee">
+          <h2>🧭 Tournée · ${echapper(tournee.ville)}</h2>
+          <div class="sous-titre">${nbFaits} / ${pluriel(etapes.length, 'arrêt')} faits · ≈ ${km} km à vol d'oiseau${tournee.depart ? ' depuis ta position' : ''}</div>
+          <div class="progression"><div style="width:${etapes.length ? (100 * nbFaits) / etapes.length : 0}%"></div></div>
+          <div class="actions" style="display:flex;flex-wrap:wrap;gap:8px">
+            ${prochains.length ? `<a class="btn degrade" target="_blank" rel="noopener" href="${lienProchains}">🗺️ Ouvrir ${prochains.length > 1 ? `les ${prochains.length} prochains arrêts` : 'le prochain arrêt'} dans Google Maps</a>` : ''}
+            <button class="btn leger" data-action="t-terminer">Terminer la tournée</button>
+          </div>
+        </div>
+        ${!restantes.length ? `<div class="panneau vide">🎉 Tournée terminée !<br><br><button class="btn" data-action="t-terminer">Revenir à la liste</button></div>` : ''}
+        ${etapes.map((t, i) => {
+          const fait = tournee.faits[t.id];
+          const e = etat(t);
+          return `
+          <article class="fiche ${fait ? 'etape faite' : 'etape'}" style="--couleur:${couleur(t)}">
+            <div class="numero ${fait ? 'fait' : ''}" style="background:${couleur(t)}">${fait ? '✓' : i + 1}</div>
+            <div style="flex:1;min-width:0">
+              <div class="haut" data-action="t-centrer" data-id="${t.id}">
+                <div style="flex:1;min-width:0">
+                  <div class="nom">${echapper(t.entreprise)}</div>
+                  <div class="lieu">${echapper(t.adresse || t.ville || '')}</div>
+                  ${fait ? '' : contact(t)}
+                </div>
+              </div>
+              ${fait
+                ? `<div class="lieu" style="margin-top:6px">${{ videe: '💧 Vidée', posee: '✅ Posée', passee: '⏭️ Passée' }[fait]} · <a href="#" data-action="t-annuler" data-id="${t.id}">annuler</a></div>`
+                : `<div class="badges">${badges(t)}</div>
+                   ${t.notes ? `<div class="notes">${echapper(t.notes)}</div>` : ''}
+                   <div class="actions">
+                     ${e === 'a_poser' ? `<button class="btn vert petit" data-action="t-poser" data-id="${t.id}">✅ Posée</button>` : `<button class="btn petit" data-action="t-vider" data-id="${t.id}">💧 Vidée</button>`}
+                     <button class="btn leger petit" data-action="t-passer" data-id="${t.id}">⏭️ Passer</button>
+                     <a class="btn leger petit" target="_blank" rel="noopener" href="${lienItineraire(t)}">🧭 Y aller</a>
+                     ${t.contact_tel ? `<a class="btn leger petit" href="${lienTel(t.contact_tel)}">📞</a>` : ''}
+                     <button class="btn leger petit" data-action="modifier" data-id="${t.id}">✏️</button>
+                   </div>`}
+            </div>
+          </article>`;
+        }).join('')}`;
+    }
+
+    async function actionTournee(nom, id) {
+      if (nom === 't-terminer') {
+        const reste = tournee.ordre.filter((x) => !tournee.faits[x]).length;
+        if (reste && !confirm(`Il reste ${pluriel(reste, 'arrêt')}. Terminer quand même la tournée ?`)) return;
+        tournee = null;
+        sauverTournee();
+        return rafraichir(true);
+      }
+      const t = tirelires.find((x) => x.id === id);
+      if (!t) return;
+      try {
+        if (nom === 't-centrer') {
+          carte.setView([t.lat, t.lng], 17);
+          marqueurs[t.id] && marqueurs[t.id].openPopup();
+          if (window.innerWidth < 960) window.scrollTo({ top: 0, behavior: 'smooth' });
+          return;
+        }
+        if (nom === 't-vider') { await modifier(t, { dernier_vidage: aujourdhui() }); tournee.faits[id] = 'videe'; toast('💧 Vidage enregistré'); }
+        if (nom === 't-poser') { await modifier(t, { statut: 'en_place', date_pose: aujourdhui() }); tournee.faits[id] = 'posee'; toast('✅ Tirelire posée'); }
+        if (nom === 't-passer') tournee.faits[id] = 'passee';
+        if (nom === 't-annuler') delete tournee.faits[id];
+        sauverTournee();
+        rafraichir(false);
+      } catch (err) { alert(err.message); }
+    }
+
+    // ================= Fenêtres =================
     function ouvrirFenetre(id) {
       $(id).classList.remove('cache');
       document.body.style.overflow = 'hidden';
@@ -565,6 +976,7 @@
     document.querySelectorAll('.voile').forEach((v) => (v.onmousedown = (e) => { if (e.target === v) fermerFenetres(); }));
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape') fermerFenetres(); });
 
+    // ================= Fenêtre ajouter / modifier =================
     function definirPosition(lat, lng, centrer) {
       positionFiche = { lat, lng };
       if (marqueurFiche) marqueurFiche.setLatLng([lat, lng]);
@@ -600,6 +1012,13 @@
       if (res.ville && !f.ville.value.trim()) f.ville.value = res.ville;
     }
 
+    function majChampsSelonStatut() {
+      const statut = v3 ? $('formFiche').statut.value : 'en_place';
+      $('libelleDatePose').textContent = statut === 'a_poser' ? 'Date de repérage' : 'Date de pose';
+      $('blocVidage').classList.toggle('cache', statut === 'a_poser' || statut === 'refus');
+    }
+    document.querySelectorAll('#blocStatut input').forEach((r) => (r.onchange = majChampsSelonStatut));
+
     function ouvrirFiche(t) {
       ficheEnCours = t || null;
       const f = $('formFiche');
@@ -607,12 +1026,20 @@
       $('erreurFiche').textContent = '';
       $('titreFiche').textContent = t ? 'Modifier la tirelire' : 'Nouvelle tirelire';
       $('btnSupprimer').classList.toggle('cache', !t);
+      $('blocStatut').classList.toggle('cache', !v3);
+      $('blocContact').classList.toggle('cache', !v3);
+      $('aideMigration').classList.toggle('cache', v3);
+      f.statut.value = t ? etat(t) : filtreTuile === 'a_poser' || $('filtreStatut').value === 'a_poser' ? 'a_poser' : 'en_place';
       f.entreprise.value = t ? t.entreprise : '';
       f.ville.value = t ? t.ville || '' : $('filtreVille').value;
       f.adresse.value = t ? t.adresse || '' : '';
       f.date_pose.value = t ? t.date_pose : aujourdhui();
       f.dernier_vidage.value = t ? t.dernier_vidage || '' : '';
+      f.contact_nom.value = t ? t.contact_nom || '' : '';
+      f.contact_tel.value = t ? t.contact_tel || '' : '';
+      f.horaires.value = t ? t.horaires || '' : '';
       f.notes.value = t ? t.notes || '' : '';
+      majChampsSelonStatut();
       ouvrirFenetre('fenetreFiche');
 
       if (!miniCarte) {
@@ -631,26 +1058,18 @@
     $('btnAjouter').onclick = () => ouvrirFiche(null);
     $('btnVidageAujourdhui').onclick = () => ($('formFiche').dernier_vidage.value = aujourdhui());
 
-    $('btnMaPosition').onclick = () => {
-      if (!navigator.geolocation) return alert('La géolocalisation n\'est pas disponible sur cet appareil');
+    $('btnMaPosition').onclick = async () => {
       const bouton = $('btnMaPosition');
       bouton.disabled = true;
       bouton.textContent = '⏳ Localisation…';
-      navigator.geolocation.getCurrentPosition(
-        async (p) => {
-          definirPosition(p.coords.latitude, p.coords.longitude, true);
-          await completerAdresse(p.coords.latitude, p.coords.longitude, true);
-          bouton.disabled = false;
-          bouton.textContent = '📍 Utiliser ma position';
-          toast(`📍 Position trouvée (précision ~${Math.round(p.coords.accuracy)} m)`);
-        },
-        () => {
-          bouton.disabled = false;
-          bouton.textContent = '📍 Utiliser ma position';
-          alert("Impossible d'obtenir ta position. Vérifie que la localisation est autorisée pour ce site.");
-        },
-        { enableHighAccuracy: true, timeout: 15000 }
-      );
+      try {
+        const p = await maPosition();
+        definirPosition(p.lat, p.lng, true);
+        await completerAdresse(p.lat, p.lng, true);
+        toast(`📍 Position trouvée (précision ~${Math.round(p.precision)} m)`);
+      } catch (err) { alert(err.message); }
+      bouton.disabled = false;
+      bouton.textContent = '📍 Utiliser ma position';
     };
 
     $('btnDepuisAdresse').onclick = async () => {
@@ -662,7 +1081,7 @@
         const [res] = await r.json();
         if (!res) return alert('Adresse introuvable : touche directement la carte');
         definirPosition(Number(res.lat), Number(res.lon), true);
-      } catch { alert('Recherche d\'adresse impossible pour le moment'); }
+      } catch { alert("Recherche d'adresse impossible pour le moment"); }
     };
 
     $('formFiche').onsubmit = async (e) => {
@@ -679,11 +1098,11 @@
         lat: positionFiche ? positionFiche.lat : null,
         lng: positionFiche ? positionFiche.lng : null,
       };
+      if (v3) Object.assign(donnees, { statut: f.statut.value, contact_nom: f.contact_nom.value, contact_tel: f.contact_tel.value, horaires: f.horaires.value });
       $('btnEnregistrer').disabled = true;
       try {
         if (ficheEnCours) {
-          const [maj] = await api('PATCH', `tirelires?id=${ficheEnCours.id}`, donnees);
-          Object.assign(ficheEnCours, maj);
+          await modifier(ficheEnCours, donnees);
           toast('✅ Modifications enregistrées');
         } else {
           const [nouvelle] = await api('POST', 'tirelires', donnees);
@@ -691,7 +1110,7 @@
           toast('✅ Tirelire ajoutée');
         }
         fermerFenetres();
-        afficher(false);
+        rafraichir(false);
       } catch (err) {
         $('erreurFiche').textContent = err.message;
       } finally {
@@ -701,12 +1120,13 @@
 
     $('btnSupprimer').onclick = async () => {
       const t = ficheEnCours;
-      if (!t || !confirm(`Supprimer définitivement « ${t.entreprise} » ?`)) return;
+      if (!t || !confirm(`Supprimer définitivement « ${t.entreprise} » ?\n\nAstuce : pour garder l'historique, choisis plutôt le statut « Retirée ».`)) return;
       try {
         await api('DELETE', `tirelires?id=${t.id}`);
         tirelires = tirelires.filter((x) => x.id !== t.id);
+        if (tournee) { tournee.ordre = tournee.ordre.filter((x) => x !== t.id); if (!tournee.ordre.length) tournee = null; sauverTournee(); }
         fermerFenetres();
-        afficher(false);
+        rafraichir(false);
         toast('🗑️ Tirelire supprimée');
       } catch (err) { $('erreurFiche').textContent = err.message; }
     };
@@ -715,9 +1135,9 @@
     function apercuSeuils() {
       const o = Number($('champOrange').value), r = Number($('champRouge').value);
       $('apercuSeuils').innerHTML = `
-        <div><span class="point" style="background:${STATUTS.ok.hex}"></span>Vert : vidée il y a moins de ${o || '?'} mois</div>
-        <div><span class="point" style="background:${STATUTS.bientot.hex}"></span>Orange : entre ${o || '?'} et ${r || '?'} mois</div>
-        <div><span class="point" style="background:${STATUTS.urgent.hex}"></span>Rouge : plus de ${r || '?'} mois</div>`;
+        <div><span class="point" style="background:${URGENCES.ok.hex}"></span>Vert : vidée il y a moins de ${o || '?'} mois</div>
+        <div><span class="point" style="background:${URGENCES.bientot.hex}"></span>Orange : entre ${o || '?'} et ${r || '?'} mois</div>
+        <div><span class="point" style="background:${URGENCES.urgent.hex}"></span>Rouge : plus de ${r || '?'} mois</div>`;
     }
     $('champOrange').oninput = apercuSeuils;
     $('champRouge').oninput = apercuSeuils;
@@ -738,7 +1158,7 @@
         const res = await api('PUT', 'parametres', { seuil_orange_mois: orange, seuil_rouge_mois: rouge });
         seuils = { orange: res.seuil_orange_mois, rouge: res.seuil_rouge_mois };
         fermerFenetres();
-        afficher(false);
+        rafraichir(false);
         toast('✅ Paramètres enregistrés');
       } catch (err) { $('erreurParametres').textContent = err.message; }
     };
