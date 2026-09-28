@@ -4,11 +4,12 @@ create table if not exists tirelires (
   entreprise    text not null,
   ville         text,
   adresse       text,
-  lat           double precision not null,
-  lng           double precision not null,
+  lat           double precision,
+  lng           double precision,
   date_pose     date not null default current_date,
   dernier_vidage date,
   notes         text,
+  notion_id     text unique,
   created_at    timestamptz not null default now()
 );
 

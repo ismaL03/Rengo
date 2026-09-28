@@ -37,11 +37,11 @@ Code couleur (comme dans Notion) : 🟢 vidée il y a < 6 semaines · 🟠 6 à 
 
 Pour changer le code d'accès : modifie `ACCESS_CODE` dans Vercel puis *Redeploy*.
 
-### 3. (Optionnel) Reprendre les tirelires existantes de Notion
-1. Dans Notion, base **🏛️ Tirelires Rengo** → `⋯` → **Export** → CSV.
-2. Adapte les colonnes au format `entreprise, ville, adresse, lat, lng, date_pose, dernier_vidage, notes`
-   (les coordonnées GPS peuvent se retrouver en cherchant l'adresse sur https://www.openstreetmap.org).
-3. Dans Supabase → **Table Editor → tirelires → Insert → Import data from CSV**.
+### 3. Importer les tirelires existantes de Notion
+Dans Supabase → **SQL Editor** → **New query**, colle le contenu de `migration_notion.sql` → **Run**.
+Le script ajoute les 206 tirelires de la base Notion **🏛️ Tirelires Rengo** et peut être relancé
+sans créer de doublons. Celles qui n'avaient pas de position GPS dans Notion apparaissent dans la
+liste avec un bouton **📍 Placer** pour les mettre sur la carte.
 
 ## Utilisation
 - **Carte** : chaque point = une tirelire, couleur = urgence du vidage. Clic = détails.

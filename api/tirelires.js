@@ -79,8 +79,17 @@ async function traiter(req, res) {
   if (req.method === 'PATCH') {
     const id = Number(req.query.id);
     if (!Number.isInteger(id)) return res.status(400).json({ error: 'id manquant' });
-    const date = (req.body && req.body.dernier_vidage) || new Date().toISOString().slice(0, 10);
-    return repondre(res, await supabase(`?id=eq.${id}`, { method: 'PATCH', body: JSON.stringify({ dernier_vidage: date }) }));
+    const b = req.body || {};
+    let maj;
+    if (b.lat !== undefined || b.lng !== undefined) {
+      const lat = Number(b.lat);
+      const lng = Number(b.lng);
+      if (!Number.isFinite(lat) || !Number.isFinite(lng)) return res.status(400).json({ error: 'Position invalide' });
+      maj = { lat, lng };
+    } else {
+      maj = { dernier_vidage: b.dernier_vidage || new Date().toISOString().slice(0, 10) };
+    }
+    return repondre(res, await supabase(`?id=eq.${id}`, { method: 'PATCH', body: JSON.stringify(maj) }));
   }
 
   res.status(405).json({ error: 'Méthode non autorisée' });
