@@ -51,6 +51,13 @@
 
   <!-- Application -->
   <main id="app" class="cache">
+    <div id="bandeauPlacer" class="carte-blanche cache" style="margin:0 0 12px">
+      <b>📍 Placer « <span id="nomAPlacer"></span> »</b> : clique sur la carte, ou
+      <div class="barre" style="margin-top:8px">
+        <button type="button" id="btnPlacerIci">📍 Ma position</button>
+        <button type="button" class="secondaire" id="btnAnnulerPlacer">Annuler</button>
+      </div>
+    </div>
     <div id="carte"></div>
     <div class="legende">🟢 vidée il y a moins de 6 semaines · 🟠 entre 6 et 9 semaines · 🔴 plus de 9 semaines</div>
 
@@ -88,11 +95,13 @@
     let code = localStorage.getItem('rengo-code') || '';
     let tirelires = [];
     let carte, calque, marqueurNouveau, positionNouvelle = null;
+    let aPlacer = null; // tirelire sans position en cours de placement
 
     // ---------- Utilitaires ----------
     const echapper = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
     const joursDepuis = (d) => Math.floor((Date.now() - new Date(d)) / 86400000);
     const dateFr = (d) => new Date(d).toLocaleDateString('fr-FR');
+    const aPosition = (t) => t.lat != null && t.lng != null;
     const duree = (j) => j < 1 ? "aujourd'hui" : j < 60 ? `il y a ${j} j` : `il y a ${Math.round(j / 30)} mois`;
 
     function couleur(t) {
@@ -143,7 +152,45 @@
       carte = L.map('carte').setView([49.2, 2.5], 9);
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(carte);
       calque = L.layerGroup().addTo(carte);
-      carte.on('click', (e) => { if (!$('formAjout').classList.contains('cache')) placerNouveau(e.latlng.lat, e.latlng.lng); });
+      carte.on('click', (e) => {
+        if (aPlacer) enregistrerPosition(e.latlng.lat, e.latlng.lng);
+        else if (!$('formAjout').classList.contains('cache')) placerNouveau(e.latlng.lat, e.latlng.lng);
+      });
+    }
+
+    // ---------- Placer une tirelire sans position ----------
+    function commencerPlacement(t) {
+      aPlacer = t;
+      $('nomAPlacer').textContent = t.entreprise;
+      $('bandeauPlacer').classList.remove('cache');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function arreterPlacement() {
+      aPlacer = null;
+      $('bandeauPlacer').classList.add('cache');
+    }
+    $('btnAnnulerPlacer').onclick = arreterPlacement;
+
+    $('btnPlacerIci').onclick = () => {
+      if (!navigator.geolocation) return alert('Géolocalisation non disponible');
+      navigator.geolocation.getCurrentPosition(
+        (p) => enregistrerPosition(p.coords.latitude, p.coords.longitude),
+        () => alert("Impossible d'obtenir ta position"),
+        { enableHighAccuracy: true }
+      );
+    };
+
+    async function enregistrerPosition(lat, lng) {
+      const t = aPlacer;
+      if (!confirm(`Placer « ${t.entreprise} » ici ?`)) return;
+      try {
+        const [maj] = await api('PATCH', `?id=${t.id}`, { lat, lng });
+        Object.assign(t, maj);
+        arreterPlacement();
+        afficher();
+        carte.setView([t.lat, t.lng], 16);
+      } catch (err) { alert(err.message); }
     }
 
     function placerNouveau(lat, lng) {
@@ -159,15 +206,18 @@
       const filtre = $('recherche').value.toLowerCase();
       const visibles = tirelires.filter((t) => `${t.entreprise} ${t.ville} ${t.adresse}`.toLowerCase().includes(filtre));
 
+      const placees = visibles.filter(aPosition);
       calque.clearLayers();
-      visibles.forEach((t) => {
+      placees.forEach((t) => {
         L.circleMarker([t.lat, t.lng], { radius: 9, color: '#fff', weight: 2, fillColor: couleur(t), fillOpacity: 1 })
           .bindPopup(`<b>${echapper(t.entreprise)}</b><br>${echapper(t.adresse || t.ville || '')}<br>Posée le ${dateFr(t.date_pose)} (${duree(joursDepuis(t.date_pose))})`)
           .addTo(calque);
       });
-      if (visibles.length && !filtre) carte.fitBounds(visibles.map((t) => [t.lat, t.lng]), { padding: [30, 30], maxZoom: 14 });
+      if (placees.length && !filtre) carte.fitBounds(placees.map((t) => [t.lat, t.lng]), { padding: [30, 30], maxZoom: 14 });
 
-      $('compteur').textContent = `${visibles.length} tirelire${visibles.length > 1 ? 's' : ''}`;
+      const sansPosition = visibles.length - placees.length;
+      $('compteur').textContent = `${visibles.length} tirelire${visibles.length > 1 ? 's' : ''}`
+        + (sansPosition ? ` (${sansPosition} sans position sur la carte)` : '');
       $('liste').innerHTML = visibles.map((t) => `
         <div class="tirelire">
           <div class="pastille" style="background:${couleur(t)}"></div>
@@ -175,7 +225,9 @@
             <div class="nom">${echapper(t.entreprise)}</div>
             <div class="detail">${echapper(t.ville || '')} · posée le ${dateFr(t.date_pose)} (${duree(joursDepuis(t.date_pose))})</div>
             <div class="detail">Dernier vidage : ${t.dernier_vidage ? `${dateFr(t.dernier_vidage)} (${duree(joursDepuis(t.dernier_vidage))})` : 'jamais'}</div>
+            ${aPosition(t) ? '' : '<div class="detail">📍 Pas encore de position</div>'}
           </div>
+          ${aPosition(t) ? '' : `<button class="secondaire" data-placer="${t.id}">📍 Placer</button>`}
           <button class="secondaire" data-vider="${t.id}">💧 Vidée</button>
         </div>`).join('');
     }
@@ -184,8 +236,11 @@
 
     $('liste').onclick = async (e) => {
       const vider = e.target.closest('[data-vider]');
+      const placer = e.target.closest('[data-placer]');
       const infos = e.target.closest('[data-id]');
-      if (vider) {
+      if (placer) {
+        commencerPlacement(tirelires.find((x) => x.id == placer.dataset.placer));
+      } else if (vider) {
         const t = tirelires.find((x) => x.id == vider.dataset.vider);
         if (!confirm(`Marquer « ${t.entreprise} » comme vidée aujourd'hui ?`)) return;
         const [maj] = await api('PATCH', `?id=${t.id}`, {});
@@ -193,6 +248,7 @@
         afficher();
       } else if (infos) {
         const t = tirelires.find((x) => x.id == infos.dataset.id);
+        if (!aPosition(t)) return commencerPlacement(t);
         carte.setView([t.lat, t.lng], 16);
         window.scrollTo({ top: 0, behavior: 'smooth' });
       }
