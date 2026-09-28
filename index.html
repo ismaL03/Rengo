@@ -108,7 +108,7 @@
       });
       const data = await r.json().catch(() => ({}));
       if (r.status === 401) { deconnexion(); throw new Error("Code d'accès invalide"); }
-      if (!r.ok) throw new Error(data.error || 'Erreur');
+      if (!r.ok) throw new Error(data.error || `Erreur ${r.status}${r.status === 404 ? " : l'API /api/tirelires est introuvable" : ''}`);
       return data;
     }
 
