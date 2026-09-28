@@ -13,6 +13,15 @@ create table if not exists tirelires (
   created_at    timestamptz not null default now()
 );
 
--- Personne ne peut lire la table directement depuis le navigateur :
+-- Réglages partagés : seuils de couleur en mois
+create table if not exists parametres (
+  id                int primary key default 1 check (id = 1),
+  seuil_orange_mois numeric not null default 3,
+  seuil_rouge_mois  numeric not null default 5
+);
+insert into parametres (id) values (1) on conflict (id) do nothing;
+
+-- Personne ne peut lire ces tables directement depuis le navigateur :
 -- seul le site (via la clé "service_role", côté serveur) y a accès.
 alter table tirelires enable row level security;
+alter table parametres enable row level security;
