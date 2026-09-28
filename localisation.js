@@ -186,9 +186,9 @@ const Localisation = (() => {
 (() => {
   let propositions = [];
   const METHODES = {
-    nom: { icone: '🏪', libelle: 'Trouvée par son nom' },
-    voisine: { icone: '🔗', libelle: "À côté d'une autre tirelire" },
-    zone: { icone: '🏙️', libelle: 'Zone de la ville (approximatif)' },
+    nom: { icone: 'boutique', libelle: 'Trouvées par leur nom', resume: (n) => (n > 1 ? 'trouvées par leur nom' : 'trouvée par son nom') },
+    voisine: { icone: 'lien', libelle: "À côté d'une autre tirelire", resume: (n) => (n > 1 ? "placées à côté d'une autre tirelire" : "placée à côté d'une autre tirelire") },
+    zone: { icone: 'ville', libelle: 'Zone de la ville, approximatif', resume: (n) => `placée${n > 1 ? 's' : ''} dans la zone de leur ville (approximatif)` },
   };
 
   window.ouvrirLocalisation = () => {
@@ -196,8 +196,8 @@ const Localisation = (() => {
     $('locEtape1').classList.remove('cache');
     $('locEtape2').classList.add('cache');
     $('locEtape3').classList.add('cache');
-    $('locPied').innerHTML = `<span class="espace"></span><button type="button" class="btn leger" data-fermer-loc>Annuler</button>
-      <button type="button" class="btn degrade" id="btnLancerLoc" ${sans.length && v4 ? '' : 'disabled'}>🔎 Lancer la recherche</button>`;
+    $('locPied').innerHTML = `<span class="espace"></span><button type="button" class="btn secondaire" data-fermer-loc>Annuler</button>
+      <button type="button" class="btn" id="btnLancerLoc" ${sans.length && v4 ? '' : 'disabled'}>${icone('loupe', true)}Lancer la recherche</button>`;
     $('locNombre').textContent = pluriel(sans.length, 'tirelire');
     $('locMigration').classList.toggle('cache', v4);
     ouvrirFenetre('fenetreLocalisation');
@@ -222,7 +222,7 @@ const Localisation = (() => {
   async function lancer() {
     $('locEtape1').classList.add('cache');
     $('locEtape2').classList.remove('cache');
-    $('locPied').innerHTML = '<span class="espace"></span><button type="button" class="btn leger" data-fermer-loc>Annuler</button>';
+    $('locPied').innerHTML = '<span class="espace"></span><button type="button" class="btn secondaire" data-fermer-loc>Annuler</button>';
     let annule = false;
     $('locPied').querySelector('[data-fermer-loc]').addEventListener('click', () => (annule = true), { once: true });
     const res = await Localisation.proposer(tirelires, (message, fait, total) => {
@@ -240,22 +240,22 @@ const Localisation = (() => {
     $('locEtape2').classList.add('cache');
     $('locEtape3').classList.remove('cache');
     const groupes = ['nom', 'voisine', 'zone'].map((m) => [m, propositions.filter((p) => p.methode === m)]).filter(([, l]) => l.length);
-    $('locResume').innerHTML = groupes.map(([m, l]) => `<div>${METHODES[m].icone} <b>${l.length}</b> ${METHODES[m].libelle.toLowerCase()}</div>`).join('') +
-      (introuvables.length ? `<div>❔ <b>${introuvables.length}</b> sans ville connue : à placer à la main</div>` : '');
+    $('locResume').innerHTML = groupes.map(([m, l]) => `<div>${icone(METHODES[m].icone, true)}<span><b>${l.length}</b> ${METHODES[m].resume(l.length)}</span></div>`).join('') +
+      (introuvables.length ? `<div>${icone('info', true)}<span><b>${introuvables.length}</b> sans ville connue, à placer à la main</span></div>` : '');
     $('locResultats').innerHTML = groupes.map(([m, l]) => `
-      <div class="section" style="display:flex;align-items:center;gap:8px">${METHODES[m].icone} ${METHODES[m].libelle} (${l.length})
-        <span class="espace" style="flex:1"></span>
-        <a href="#" data-tout="${m}" data-valeur="1" style="font-size:12px;text-transform:none;letter-spacing:0;white-space:nowrap">tout cocher</a>
-        <a href="#" data-tout="${m}" data-valeur="0" style="font-size:12px;text-transform:none;letter-spacing:0;white-space:nowrap">tout décocher</a>
+      <div class="section">${METHODES[m].libelle} · ${l.length}
+        <span class="espace"></span>
+        <button type="button" class="lien" data-tout="${m}" data-valeur="1">Tout cocher</button>
+        <button type="button" class="lien" data-tout="${m}" data-valeur="0">Aucune</button>
       </div>
       ${l.map((p) => `
         <label class="ligne-loc">
           <input type="checkbox" data-id="${p.t.id}" data-methode="${m}" checked>
-          <span><b>${echapper(p.t.entreprise)}</b> · ${echapper(p.t.ville || '')}<br>
+          <span><b>${echapper(p.t.entreprise)}</b> · ${echapper(p.t.ville || '')}
           <small>${echapper(p.detail)}${p.adresse ? ' · ' + echapper(p.adresse) : ''}</small></span>
         </label>`).join('')}`).join('');
-    $('locPied').innerHTML = `<span class="espace"></span><button type="button" class="btn leger" data-fermer-loc>Annuler</button>
-      <button type="button" class="btn degrade" id="btnEnregistrerLoc">Enregistrer</button>`;
+    $('locPied').innerHTML = `<span class="espace"></span><button type="button" class="btn secondaire" data-fermer-loc>Annuler</button>
+      <button type="button" class="btn" id="btnEnregistrerLoc">Enregistrer</button>`;
     majCompte();
   }
 
@@ -277,7 +277,7 @@ const Localisation = (() => {
     }));
     fermerFenetres();
     rafraichir(true);
-    toast(erreurs ? `⚠️ ${faites} positions enregistrées, ${erreurs} en erreur` : `✅ ${pluriel(faites, 'position')} enregistrée${faites > 1 ? 's' : ''}`);
+    toast(erreurs ? `${faites} positions enregistrées, ${erreurs} en erreur` : `${pluriel(faites, 'position')} enregistrée${faites > 1 ? 's' : ''}`, erreurs ? 'alerte' : 'check');
   }
 
 })();

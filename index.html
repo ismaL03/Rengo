@@ -4,188 +4,318 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Tirelires Rengo</title>
-  <meta name="theme-color" content="#ffffff">
+  <meta name="theme-color" content="#f5f6f8">
+  <meta name="color-scheme" content="light dark">
   <link rel="icon" href="assets/icone.png">
   <link rel="apple-touch-icon" href="assets/icone.png">
+  <script>
+    // Thème choisi (auto / clair / sombre) appliqué avant l'affichage pour éviter un flash
+    try { const t = localStorage.getItem('rengo-theme'); if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t; } catch {}
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&family=Inter:wght@400;500;600&display=swap">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
   <style>
+    /* ================= Couleurs (clair / sombre) ================= */
     :root {
-      --bleu: #4a86c5; --bleu-fonce: #2f6aa8; --violet: #8a6bb1;
-      --fond: #f4f6fb; --carte: #ffffff; --texte: #1c1d21; --doux: #6b7080; --bord: #e3e6ee;
-      --vert: #22a861; --orange: #f08c1a; --rouge: #e04848; --gris: #9aa0ad;
-      --ombre: 0 1px 2px rgba(20, 30, 60, .06), 0 4px 16px rgba(20, 30, 60, .06);
-      --rayon: 14px;
+      --fond: #f5f6f8; --surface: #ffffff; --surface-2: #f0f2f5; --surface-3: #e7eaef;
+      --bord: #e3e6eb; --bord-fort: #cfd4dc;
+      --texte: #15171c; --doux: #636b78; --tres-doux: #8b93a0;
+      --primaire: #3b77ba; --primaire-survol: #2f65a2; --primaire-doux: #e8f0f9; --sur-primaire: #ffffff;
+      --accent: #8a6bb1;
+      --vert: #1f9d57; --orange: #e27d12; --rouge: #d63c3c; --gris: #8a8f9c; --gris-fonce: #5d6270;
+      --ombre: 0 1px 2px rgba(16, 24, 40, .05);
+      --ombre-haute: 0 12px 32px rgba(16, 24, 40, .16);
+      --voile: rgba(16, 20, 28, .45);
+      --carte-filtre: none;
+      color-scheme: light;
     }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --fond: #0f1115; --surface: #171a20; --surface-2: #1e222a; --surface-3: #272c36;
+        --bord: #262b34; --bord-fort: #353b47;
+        --texte: #e9ebef; --doux: #9aa2af; --tres-doux: #737b88;
+        --primaire: #5a93d4; --primaire-survol: #6fa2dc; --primaire-doux: #1b2940; --sur-primaire: #0c1422;
+        --accent: #a58ccb;
+        --vert: #34b86c; --orange: #f0923a; --rouge: #ec5f5f; --gris: #7d8391; --gris-fonce: #a1a7b3;
+        --ombre: 0 1px 2px rgba(0, 0, 0, .3);
+        --ombre-haute: 0 12px 32px rgba(0, 0, 0, .5);
+        --voile: rgba(0, 0, 0, .6);
+        --carte-filtre: invert(1) hue-rotate(180deg) brightness(.88) contrast(.92) saturate(.6);
+        color-scheme: dark;
+      }
+    }
+    :root[data-theme="dark"] {
+      --fond: #0f1115; --surface: #171a20; --surface-2: #1e222a; --surface-3: #272c36;
+      --bord: #262b34; --bord-fort: #353b47;
+      --texte: #e9ebef; --doux: #9aa2af; --tres-doux: #737b88;
+      --primaire: #5a93d4; --primaire-survol: #6fa2dc; --primaire-doux: #1b2940; --sur-primaire: #0c1422;
+      --accent: #a58ccb;
+      --vert: #34b86c; --orange: #f0923a; --rouge: #ec5f5f; --gris: #7d8391; --gris-fonce: #a1a7b3;
+      --ombre: 0 1px 2px rgba(0, 0, 0, .3);
+      --ombre-haute: 0 12px 32px rgba(0, 0, 0, .5);
+      --voile: rgba(0, 0, 0, .6);
+      --carte-filtre: invert(1) hue-rotate(180deg) brightness(.88) contrast(.92) saturate(.6);
+      color-scheme: dark;
+    }
+
+    /* ================= Base ================= */
     * { box-sizing: border-box; }
     html, body { margin: 0; }
-    body { font-family: Poppins, system-ui, -apple-system, Segoe UI, Roboto, sans-serif; color: var(--texte); background: var(--fond); font-size: 15px; -webkit-font-smoothing: antialiased; }
+    body { font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; font-size: 15px; line-height: 1.45; color: var(--texte); background: var(--fond); -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent; }
+    h1, h2, h3, .titre-police { font-family: Poppins, Inter, system-ui, sans-serif; letter-spacing: -.01em; }
     button, input, select, textarea { font: inherit; color: inherit; }
-    a { color: inherit; }
+    a { color: var(--primaire); }
     .cache { display: none !important; }
+    .i { width: 18px; height: 18px; flex-shrink: 0; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .i.petit { width: 15px; height: 15px; }
+    .logo-sombre { display: none !important; }
+    @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .logo-clair { display: none !important; } :root:not([data-theme="light"]) .logo-sombre { display: inline-block !important; } }
+    :root[data-theme="dark"] .logo-clair { display: none !important; }
+    :root[data-theme="dark"] .logo-sombre { display: inline-block !important; }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
 
-    /* ---------- Boutons & champs ---------- */
-    .btn { border: 0; border-radius: 10px; padding: 10px 14px; cursor: pointer; background: var(--bleu); color: #fff; font-weight: 500; display: inline-flex; align-items: center; justify-content: center; gap: 6px; white-space: nowrap; text-decoration: none; transition: background .15s, transform .05s; }
-    .btn:hover { background: var(--bleu-fonce); }
+    /* ================= Boutons & champs ================= */
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 7px; height: 40px; padding: 0 14px; border: 1px solid transparent; border-radius: 10px; background: var(--primaire); color: var(--sur-primaire); font-weight: 500; white-space: nowrap; text-decoration: none; cursor: pointer; transition: background-color .15s, border-color .15s, transform .08s; }
+    .btn:hover { background: var(--primaire-survol); }
     .btn:active { transform: scale(.97); }
-    .btn.leger { background: #eef1f7; color: var(--texte); }
-    .btn.leger:hover { background: #e2e7f1; }
-    .btn.vert { background: var(--vert); }
-    .btn.vert:hover { background: #1b8c50; }
-    .btn.degrade { background: linear-gradient(135deg, var(--bleu), var(--violet)); }
-    .btn.danger { background: #fdecec; color: var(--rouge); }
-    .btn.danger:hover { background: #fadada; }
-    .btn.petit { padding: 7px 10px; font-size: 13px; border-radius: 8px; }
-    .btn.icone { padding: 9px; width: 40px; height: 40px; }
-    .btn:disabled { opacity: .6; cursor: wait; }
-    input, select, textarea { width: 100%; padding: 10px 12px; border: 1px solid var(--bord); border-radius: 10px; background: #fff; outline: none; transition: border-color .15s, box-shadow .15s; }
-    input:focus, select:focus, textarea:focus { border-color: var(--bleu); box-shadow: 0 0 0 3px rgba(74, 134, 197, .15); }
-    input[type="checkbox"], input[type="radio"] { width: auto; accent-color: var(--bleu); }
-    label { display: block; font-size: 13px; font-weight: 500; color: var(--doux); margin: 12px 0 4px; }
-    .section { font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--violet); margin: 22px 0 2px; }
+    .btn:focus-visible, .tuile:focus-visible, .choix:focus-within { outline: 2px solid var(--primaire); outline-offset: 2px; }
+    .btn.secondaire { background: var(--surface); color: var(--texte); border-color: var(--bord); }
+    .btn.secondaire:hover { background: var(--surface-2); }
+    .btn.discret { background: transparent; color: var(--doux); }
+    .btn.discret:hover { background: var(--surface-2); color: var(--texte); }
+    .btn.succes { background: var(--vert); color: #fff; }
+    .btn.succes:hover { filter: brightness(1.06); }
+    .btn.danger { background: transparent; color: var(--rouge); border-color: color-mix(in srgb, var(--rouge) 35%, transparent); }
+    .btn.danger:hover { background: color-mix(in srgb, var(--rouge) 10%, transparent); }
+    .btn.petit { height: 34px; padding: 0 11px; font-size: 13.5px; border-radius: 8px; gap: 6px; }
+    .btn.carre { width: 40px; padding: 0; }
+    .btn.petit.carre { width: 34px; }
+    .btn:disabled { opacity: .55; cursor: default; transform: none; }
+    input, select, textarea { width: 100%; min-height: 42px; padding: 9px 12px; border: 1px solid var(--bord); border-radius: 10px; background: var(--surface); outline: none; transition: border-color .15s, box-shadow .15s; }
+    textarea { resize: vertical; min-height: 76px; }
+    select { appearance: none; padding-right: 34px; cursor: pointer; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238b93a0' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; }
+    input:focus, select:focus, textarea:focus { border-color: var(--primaire); box-shadow: 0 0 0 3px color-mix(in srgb, var(--primaire) 20%, transparent); }
+    input[type="checkbox"], input[type="radio"] { width: 18px; height: 18px; min-height: 0; margin: 0; accent-color: var(--primaire); flex-shrink: 0; }
+    label { display: block; font-size: 13px; font-weight: 500; color: var(--doux); margin: 14px 0 6px; }
+    .champ-icone { position: relative; }
+    .champ-icone .i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--tres-doux); pointer-events: none; }
+    .champ-icone input { padding-left: 38px; }
+    .section { font-size: 12px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--tres-doux); margin: 24px 0 2px; display: flex; align-items: center; gap: 8px; }
+    .section .espace { flex: 1; }
+    .lien { background: none; border: 0; padding: 4px 2px; color: var(--primaire); font-size: 13px; font-weight: 500; text-transform: none; letter-spacing: 0; cursor: pointer; white-space: nowrap; }
+    .point { width: 9px; height: 9px; border-radius: 50%; display: inline-block; flex-shrink: 0; background: var(--c); }
+    .point.creux { background: transparent; box-shadow: inset 0 0 0 2px var(--c); }
+    .point.approx { background: transparent; box-shadow: none; border: 1.5px dashed var(--doux); width: 10px; height: 10px; }
+    .erreur { color: var(--rouge); font-size: 14px; margin-top: 10px; }
+    .erreur:empty { display: none; }
 
-    /* ---------- Connexion ---------- */
-    #connexion { min-height: 100vh; display: grid; place-items: center; padding: 16px; background: linear-gradient(135deg, #e9f1fb 0%, #f1ebf8 100%); }
-    .boite-connexion { width: 100%; max-width: 380px; background: var(--carte); border-radius: 20px; padding: 32px 24px; box-shadow: var(--ombre); text-align: center; }
-    .boite-connexion img { width: 230px; max-width: 80%; }
-    .boite-connexion h1 { font-size: 18px; margin: 18px 0 4px; }
+    /* ================= Connexion ================= */
+    #connexion { min-height: 100vh; min-height: 100dvh; display: grid; place-items: center; padding: 24px 16px; }
+    .boite-connexion { width: 100%; max-width: 360px; text-align: center; }
+    .boite-connexion img { width: 210px; max-width: 75%; margin-bottom: 28px; }
+    .boite-connexion .panneau { padding: 24px 20px; text-align: left; }
+    .boite-connexion h1 { font-size: 19px; margin: 0 0 2px; }
     .boite-connexion p { color: var(--doux); margin: 0 0 18px; font-size: 14px; }
-    .erreur { color: var(--rouge); font-size: 14px; margin-top: 10px; min-height: 1em; }
+    .boite-connexion .btn { width: 100%; margin-top: 12px; height: 44px; }
 
-    /* ---------- En-tête ---------- */
-    header { position: sticky; top: 0; z-index: 1000; background: rgba(255, 255, 255, .92); backdrop-filter: blur(8px); border-bottom: 1px solid var(--bord); }
-    .entete { max-width: 1280px; margin: 0 auto; padding: 8px 16px; display: flex; align-items: center; gap: 8px; }
-    .entete img { height: 38px; }
-    .entete .titre { font-weight: 600; color: var(--violet); border-left: 1px solid var(--bord); padding-left: 12px; margin-left: 4px; font-size: 15px; }
+    /* ================= En-tête ================= */
+    header { position: sticky; top: 0; z-index: 1000; background: color-mix(in srgb, var(--fond) 85%, transparent); backdrop-filter: saturate(1.4) blur(10px); -webkit-backdrop-filter: saturate(1.4) blur(10px); border-bottom: 1px solid var(--bord); padding-top: env(safe-area-inset-top); }
+    .entete { max-width: 1320px; margin: 0 auto; height: 60px; padding: 0 16px; display: flex; align-items: center; gap: 8px; }
+    .entete img { height: 34px; width: auto; min-width: 0; max-width: 150px; object-fit: contain; object-position: left center; display: block; flex-shrink: 1; }
+    .entete .btn { flex-shrink: 0; }
+    .entete .titre { font-family: Poppins, sans-serif; font-weight: 600; font-size: 15px; color: var(--doux); padding-left: 12px; margin-left: 4px; border-left: 1px solid var(--bord-fort); }
     .entete .espace { flex: 1; }
-    @media (max-width: 480px) { .entete .titre { display: none; } .entete img { height: 32px; } }
+    @media (max-width: 560px) { .entete .titre { display: none; } .entete img { height: 30px; } .masque-mobile { display: none; } .entete .btn.avec-texte { width: 40px; padding: 0; } }
 
-    /* ---------- Mise en page ---------- */
-    main { max-width: 1280px; margin: 0 auto; padding: 16px 16px 96px; }
+    /* ================= Mise en page ================= */
+    main { max-width: 1320px; margin: 0 auto; padding: 16px 16px calc(32px + env(safe-area-inset-bottom)); }
     .grille { display: grid; gap: 16px; }
-    @media (min-width: 960px) {
-      .grille { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); align-items: start; }
-      .colonne-carte { position: sticky; top: 72px; }
-      #carte { height: calc(100vh - 150px) !important; }
+    @media (min-width: 980px) {
+      .grille { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); align-items: start; gap: 20px; }
+      .colonne-carte { position: sticky; top: 76px; }
+      #carte { height: calc(100vh - 150px) !important; height: calc(100dvh - 150px) !important; }
     }
-    .panneau { background: var(--carte); border-radius: var(--rayon); box-shadow: var(--ombre); }
+    .panneau { background: var(--surface); border: 1px solid var(--bord); border-radius: 14px; box-shadow: var(--ombre); }
 
-    /* ---------- Compteurs ---------- */
+    /* ================= Compteurs ================= */
     .stats { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; margin-bottom: 16px; }
+    .tuile { display: flex; flex-direction: column; gap: 4px; min-height: 66px; padding: 10px 12px; background: var(--surface); border: 1px solid var(--bord); border-radius: 12px; text-align: left; cursor: pointer; transition: border-color .15s, background-color .15s; }
+    .tuile:hover { border-color: var(--bord-fort); }
+    .tuile.actif { border-color: var(--primaire); background: var(--primaire-doux); }
+    .tuile .nombre { font-family: Poppins, sans-serif; font-size: 22px; font-weight: 600; line-height: 1; font-variant-numeric: tabular-nums; }
+    .tuile .libelle { display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--doux); }
     @media (max-width: 640px) {
-      .stats { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
-      .tuile { padding: 8px 6px; text-align: center; }
-      .tuile .nombre { font-size: 18px; }
-      .tuile .libelle { font-size: 11px; justify-content: center; line-height: 1.2; }
+      .stats { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin-bottom: 12px; }
+      .tuile { min-height: 58px; padding: 8px 10px; }
+      .tuile .nombre { font-size: 19px; }
+      .tuile .libelle { font-size: 12px; }
     }
-    .tuile { background: var(--carte); border: 2px solid transparent; border-radius: 12px; padding: 10px 12px; box-shadow: var(--ombre); cursor: pointer; text-align: left; transition: border-color .15s; }
-    .tuile:hover { border-color: var(--bord); }
-    .tuile.actif { border-color: var(--bleu); }
-    .tuile .nombre { font-size: 22px; font-weight: 700; line-height: 1.1; }
-    .tuile .libelle { font-size: 12px; color: var(--doux); display: flex; align-items: center; gap: 5px; margin-top: 2px; }
-    .point { width: 9px; height: 9px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
-    .point.creux { background: #fff !important; border: 2px solid var(--bleu); }
 
-    /* ---------- Carte ---------- */
-    #carte { height: 42vh; min-height: 260px; border-radius: var(--rayon); z-index: 0; }
-    .legende { display: flex; flex-wrap: wrap; gap: 6px 12px; font-size: 12px; color: var(--doux); padding: 10px 4px 0; }
-    .legende span { display: inline-flex; align-items: center; gap: 5px; }
-    .leaflet-popup-content { font-family: Poppins, system-ui, sans-serif; margin: 12px 14px; }
+    /* ================= Carte ================= */
+    .cadre-carte { padding: 5px; }
+    #carte { height: 40vh; min-height: 250px; border-radius: 10px; z-index: 0; background: var(--surface-2); }
+    .leaflet-tile-pane { filter: var(--carte-filtre); }
+    .leaflet-container { font-family: Inter, system-ui, sans-serif; }
+    .leaflet-bar { border: 1px solid var(--bord) !important; box-shadow: var(--ombre) !important; }
+    .leaflet-bar a { background: var(--surface) !important; color: var(--texte) !important; border-color: var(--bord) !important; }
+    .leaflet-control-attribution { background: color-mix(in srgb, var(--surface) 80%, transparent) !important; color: var(--doux) !important; }
+    .leaflet-control-attribution a { color: var(--doux) !important; }
+    .leaflet-popup-content-wrapper, .leaflet-popup-tip { background: var(--surface); color: var(--texte); box-shadow: var(--ombre-haute); }
+    .leaflet-popup-content-wrapper { border-radius: 12px; }
+    .leaflet-popup-content { margin: 12px 14px; min-width: 190px; }
+    .leaflet-container a.leaflet-popup-close-button { color: var(--doux); }
     .popup-nom { font-weight: 600; font-size: 14px; }
-    .popup-detail { color: var(--doux); font-size: 12px; margin: 2px 0 8px; }
-    .popup-actions { display: flex; gap: 6px; flex-wrap: wrap; }
-    .repere { width: 26px; height: 26px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); background: linear-gradient(135deg, var(--bleu), var(--violet)); border: 3px solid #fff; box-shadow: 0 2px 6px rgba(0, 0, 0, .35); }
-    .numero { width: 30px; height: 30px; border-radius: 50%; color: #fff; font-weight: 700; font-size: 13px; display: grid; place-items: center; border: 3px solid #fff; box-shadow: 0 2px 6px rgba(0, 0, 0, .3); }
-    .numero.fait { background: #b8bdc8 !important; }
-    .depart { width: 18px; height: 18px; border-radius: 50%; background: var(--bleu); border: 4px solid #fff; box-shadow: 0 0 0 3px rgba(74, 134, 197, .35); }
+    .popup-detail { color: var(--doux); font-size: 12.5px; margin: 2px 0 10px; }
+    .popup-actions { display: flex; gap: 6px; }
+    .legende { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 12.5px; color: var(--doux); padding: 10px 2px 0; }
+    .legende span { display: inline-flex; align-items: center; gap: 6px; }
+    .repere { width: 26px; height: 26px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); background: var(--primaire); border: 3px solid #fff; box-shadow: 0 2px 6px rgba(0, 0, 0, .35); }
+    .numero { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; color: #fff; font-weight: 600; font-size: 13px; background: var(--c); border: 2.5px solid #fff; box-shadow: 0 1px 4px rgba(0, 0, 0, .3); font-variant-numeric: tabular-nums; }
+    .numero.fait { background: var(--gris); }
+    .depart { width: 16px; height: 16px; border-radius: 50%; background: var(--primaire); border: 3px solid #fff; box-shadow: 0 0 0 4px color-mix(in srgb, var(--primaire) 30%, transparent); }
 
-    /* ---------- Barre d'outils & liste ---------- */
-    .outils { display: grid; grid-template-columns: 1fr auto auto auto; gap: 8px; margin-bottom: 12px; }
-    @media (max-width: 640px) { .outils { grid-template-columns: 1fr 1fr; } .outils .recherche, .outils #tri { grid-column: span 2; } }
-    .compteur { font-size: 13px; color: var(--doux); margin: 0 2px 8px; }
-    .fiche { background: var(--carte); border-radius: 12px; box-shadow: var(--ombre); margin-bottom: 10px; padding: 12px 14px 12px 18px; position: relative; overflow: hidden; }
-    .fiche::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 5px; background: var(--couleur); }
-    .fiche.inactive { opacity: .78; }
-    .fiche .haut { display: flex; align-items: flex-start; gap: 10px; cursor: pointer; }
-    .fiche .nom { font-weight: 600; font-size: 15px; line-height: 1.3; }
-    .fiche .lieu { font-size: 13px; color: var(--doux); margin-top: 1px; }
-    .fiche .contact { font-size: 13px; color: #454a57; margin-top: 6px; }
-    .fiche .badges { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 10px; }
-    .badge { font-size: 12px; background: #f1f3f8; color: #454a57; border-radius: 999px; padding: 3px 9px; white-space: nowrap; }
-    .badge.statut { background: color-mix(in srgb, var(--couleur) 14%, white); color: color-mix(in srgb, var(--couleur) 80%, black); font-weight: 600; }
-    .fiche .actions { display: flex; flex-wrap: wrap; gap: 6px; }
-    .fiche .notes { font-size: 13px; color: #4a4f5c; background: #fafbfd; border-left: 3px solid var(--bord); padding: 6px 10px; margin-bottom: 10px; border-radius: 0 8px 8px 0; white-space: pre-line; }
-    .vide { text-align: center; color: var(--doux); padding: 40px 16px; }
-
-    /* ---------- Tournée ---------- */
-    .tete-tournee { padding: 16px; margin-bottom: 12px; }
-    .tete-tournee h2 { font-size: 18px; margin: 0; }
-    .tete-tournee .btn { white-space: normal; text-align: center; }
-    @media (max-width: 640px) { .tete-tournee .btn { flex: 1 1 100%; } }
-    .tete-tournee .sous-titre { color: var(--doux); font-size: 13px; margin: 2px 0 10px; }
-    .progression { height: 8px; background: #eef1f7; border-radius: 999px; overflow: hidden; margin-bottom: 12px; }
-    .progression div { height: 100%; background: linear-gradient(90deg, var(--bleu), var(--violet)); border-radius: 999px; transition: width .3s; }
-    .etape { display: flex; gap: 12px; align-items: flex-start; }
-    .etape .numero { flex-shrink: 0; width: 32px; height: 32px; border: 0; box-shadow: none; }
-    .etape.faite { opacity: .6; }
-    .etape.faite .nom { text-decoration: line-through; }
-
-    /* ---------- Bouton flottant ---------- */
-    .fab { position: fixed; right: 20px; bottom: calc(20px + env(safe-area-inset-bottom)); z-index: 1000; border-radius: 999px; padding: 14px 20px; font-size: 16px; font-weight: 600; box-shadow: 0 6px 20px rgba(74, 134, 197, .45); background: linear-gradient(135deg, var(--bleu), var(--violet)); }
-    .fab:hover { background: linear-gradient(135deg, var(--bleu-fonce), var(--violet)); }
-
-    /* ---------- Fenêtres ---------- */
-    .voile { position: fixed; inset: 0; z-index: 2000; background: rgba(20, 24, 36, .45); display: flex; align-items: flex-end; justify-content: center; animation: apparait .15s ease-out; }
-    @media (min-width: 700px) { .voile { align-items: center; padding: 24px; } }
-    .fenetre { background: var(--carte); width: 100%; max-width: 560px; max-height: 92vh; display: flex; flex-direction: column; border-radius: 20px 20px 0 0; animation: monte .2s ease-out; }
-    @media (min-width: 700px) { .fenetre { border-radius: 20px; } }
-    .fenetre .tete { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px 8px; }
-    .fenetre .tete h2 { font-size: 18px; margin: 0; }
-    .fenetre .corps { padding: 0 20px 16px; overflow-y: auto; }
-    .fenetre .pied { display: flex; gap: 8px; padding: 12px 20px calc(12px + env(safe-area-inset-bottom)); border-top: 1px solid var(--bord); }
-    .fenetre .pied .espace { flex: 1; }
-    .deux { display: grid; grid-template-columns: 1fr 1fr; gap: 0 10px; }
-    #miniCarte { height: 220px; border-radius: 12px; margin-top: 6px; z-index: 0; }
-    .position-info { font-size: 13px; color: var(--doux); margin-top: 6px; }
-    .position-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
-    .aide { font-size: 13px; color: var(--doux); background: #f6f8fc; border-radius: 10px; padding: 10px 12px; margin-top: 12px; }
-    .aide.attention { background: #fff6e8; color: #8a5300; }
-    .apercu-seuils { display: grid; gap: 6px; margin-top: 14px; font-size: 14px; }
-    .apercu-seuils div { display: flex; align-items: center; gap: 8px; }
-    .choix-statut { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
-    @media (max-width: 480px) { .choix-statut { grid-template-columns: repeat(2, 1fr); } }
-    .choix-statut label { margin: 0; border: 2px solid var(--bord); border-radius: 10px; padding: 8px 6px; text-align: center; cursor: pointer; font-size: 13px; color: var(--texte); }
-    .choix-statut input { display: none; }
-    .choix-statut label:has(input:checked) { border-color: var(--bleu); background: #eef4fb; font-weight: 600; }
-    .coches { display: grid; gap: 8px; margin-top: 6px; }
-    .coches label { margin: 0; display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--texte); font-weight: 400; border: 1px solid var(--bord); border-radius: 10px; padding: 10px 12px; cursor: pointer; }
-    .coches label .nb { margin-left: auto; color: var(--doux); font-size: 13px; }
-    .resume-tournee { margin-top: 14px; font-weight: 600; }
-    .bandeau { display: flex; align-items: center; gap: 12px; padding: 12px 14px; margin-bottom: 12px; background: linear-gradient(135deg, #eef4fb, #f3eefa); border-radius: 12px; font-size: 14px; }
+    /* ================= Outils & liste ================= */
+    .outils { display: grid; grid-template-columns: minmax(0, 1fr) 170px 170px; gap: 8px; margin-bottom: 10px; }
+    @media (max-width: 640px) { .outils { grid-template-columns: 1fr 1fr; } .outils .champ-icone { grid-column: span 2; } }
+    .barre-liste { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 2px 2px 8px; min-height: 34px; }
+    .compteur { font-size: 13px; color: var(--doux); }
+    .tri { display: flex; align-items: center; gap: 4px; font-size: 13px; color: var(--doux); }
+    .tri select { width: auto; min-height: 34px; height: 34px; padding: 0 28px 0 8px; border: 0; background-color: transparent; color: var(--texte); font-weight: 500; background-position: right 8px center; }
+    .tri select:focus { box-shadow: none; }
+    .bandeau { display: flex; align-items: center; gap: 12px; padding: 12px 14px; margin-bottom: 10px; background: var(--primaire-doux); border: 1px solid color-mix(in srgb, var(--primaire) 25%, transparent); border-radius: 12px; font-size: 14px; }
+    .bandeau .i { color: var(--primaire); }
     .bandeau .espace { flex: 1; }
-    @media (max-width: 480px) { .bandeau { flex-wrap: wrap; } .bandeau .btn { width: 100%; } }
-    .ligne-loc { display: flex; gap: 10px; align-items: flex-start; margin: 0; padding: 8px 2px; border-bottom: 1px solid #f0f2f6; font-size: 14px; color: var(--texte); font-weight: 400; cursor: pointer; }
-    .ligne-loc small { color: var(--doux); }
-    .ligne-loc input { margin-top: 4px; }
-    #locResume { display: grid; gap: 4px; font-size: 14px; background: #f6f8fc; border-radius: 10px; padding: 10px 12px; }
-    @keyframes apparait { from { opacity: 0; } }
-    @keyframes monte { from { transform: translateY(30px); opacity: 0; } }
+    @media (max-width: 520px) { .bandeau { flex-wrap: wrap; } .bandeau .btn { width: 100%; } }
 
-    /* ---------- Notifications ---------- */
-    #toast { position: fixed; left: 50%; bottom: calc(90px + env(safe-area-inset-bottom)); transform: translateX(-50%); z-index: 3000; background: #1c1d21; color: #fff; padding: 10px 16px; border-radius: 10px; font-size: 14px; box-shadow: var(--ombre); max-width: calc(100% - 32px); }
+    .fiche { position: relative; padding: 14px 14px 12px 18px; margin-bottom: 8px; background: var(--surface); border: 1px solid var(--bord); border-radius: 12px; transition: border-color .15s; }
+    .fiche::before { content: ""; position: absolute; left: -1px; top: 12px; bottom: 12px; width: 4px; border-radius: 0 4px 4px 0; background: var(--c); }
+    .fiche:hover { border-color: var(--bord-fort); }
+    .fiche.inactive { background: var(--surface-2); }
+    .fiche .haut { cursor: pointer; }
+    .fiche .nom { font-weight: 600; font-size: 15px; line-height: 1.3; overflow-wrap: anywhere; }
+    .fiche .lieu { font-size: 13px; color: var(--doux); margin-top: 2px; overflow-wrap: anywhere; }
+    .infos-contact { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 8px; font-size: 13px; color: var(--doux); }
+    .infos-contact span { display: inline-flex; align-items: center; gap: 5px; }
+    .badges { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 12px; }
+    .badge { display: inline-flex; align-items: center; gap: 5px; height: 24px; padding: 0 9px; border-radius: 6px; font-size: 12.5px; background: var(--surface-2); color: var(--doux); white-space: nowrap; }
+    .badge.statut { background: color-mix(in srgb, var(--c) 13%, transparent); color: color-mix(in srgb, var(--c) 78%, var(--texte)); font-weight: 600; }
+    .badge.alerte { background: color-mix(in srgb, var(--orange) 13%, transparent); color: color-mix(in srgb, var(--orange) 75%, var(--texte)); }
+    .actions { display: flex; flex-wrap: wrap; gap: 6px; }
+    .notes { font-size: 13.5px; color: var(--doux); background: var(--surface-2); padding: 8px 10px; margin-bottom: 12px; border-radius: 8px; white-space: pre-line; overflow-wrap: anywhere; }
+    .vide { text-align: center; color: var(--doux); padding: 40px 16px; }
+    .vide .btn { margin-top: 14px; }
+
+    /* ================= Tournée ================= */
+    .tete-tournee { padding: 16px; margin-bottom: 10px; }
+    .tete-tournee h2 { font-size: 18px; margin: 0; display: flex; align-items: center; gap: 8px; }
+    .tete-tournee .sous-titre { color: var(--doux); font-size: 13px; margin: 4px 0 12px; }
+    .tete-tournee .actions .btn { white-space: normal; text-align: center; line-height: 1.2; }
+    @media (max-width: 640px) { .tete-tournee .actions .btn { flex: 1 1 100%; } }
+    .progression { height: 6px; background: var(--surface-3); border-radius: 999px; overflow: hidden; margin-bottom: 14px; }
+    .progression div { height: 100%; background: var(--primaire); border-radius: 999px; transition: width .35s ease; }
+    .etape { display: flex; gap: 12px; align-items: flex-start; }
+    .etape > .numero { flex-shrink: 0; border: 0; box-shadow: none; }
+    .etape.faite { opacity: .62; }
+    .etape.faite .nom { text-decoration: line-through; }
+    .etape .fait-libelle { display: flex; align-items: center; gap: 8px; margin-top: 6px; font-size: 13px; color: var(--doux); }
+
+    /* ================= Fenêtres ================= */
+    .voile { position: fixed; inset: 0; z-index: 2000; display: flex; align-items: flex-end; justify-content: center; background: var(--voile); animation: fondu .18s ease-out; }
+    .fenetre { position: relative; display: flex; flex-direction: column; width: 100%; max-width: 560px; max-height: 94vh; max-height: 94dvh; background: var(--surface); border-radius: 18px 18px 0 0; box-shadow: var(--ombre-haute); animation: glisse .24s cubic-bezier(.2, .8, .2, 1); }
+    .fenetre::before { content: ""; position: absolute; top: 7px; left: 50%; width: 36px; height: 4px; margin-left: -18px; border-radius: 4px; background: var(--bord-fort); }
+    @media (min-width: 700px) {
+      .voile { align-items: center; padding: 24px; }
+      .fenetre { border-radius: 16px; animation: apparait .2s cubic-bezier(.2, .8, .2, 1); }
+      .fenetre::before { display: none; }
+    }
+    .fenetre .tete { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 20px 20px 6px; }
+    .fenetre .tete h2 { font-size: 18px; margin: 0; }
+    .fenetre .corps { padding: 0 20px 18px; overflow-y: auto; overscroll-behavior: contain; }
+    .fenetre .pied { display: flex; align-items: center; gap: 8px; padding: 12px 20px calc(12px + env(safe-area-inset-bottom)); border-top: 1px solid var(--bord); }
+    .fenetre .pied .espace { flex: 1; }
+    @media (max-width: 420px) { .fenetre .pied .btn:not(.carre) { flex: 1; } .fenetre .pied .espace { display: none; } }
+    .deux { display: grid; grid-template-columns: 1fr 1fr; gap: 0 10px; }
+    #miniCarte { height: 210px; border-radius: 10px; margin-top: 8px; z-index: 0; background: var(--surface-2); }
+    .position-info { font-size: 13px; color: var(--doux); margin-top: 8px; }
+    .rangee { display: flex; flex-wrap: wrap; gap: 6px; }
+    .aide { font-size: 13px; color: var(--doux); background: var(--surface-2); border-radius: 10px; padding: 10px 12px; margin-top: 14px; }
+    .aide.attention { background: color-mix(in srgb, var(--orange) 12%, transparent); color: color-mix(in srgb, var(--orange) 70%, var(--texte)); }
+    .choix-groupe { display: grid; gap: 6px; }
+    .choix-groupe.quatre { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .choix-groupe.trois { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    @media (max-width: 480px) { .choix-groupe.quatre { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    .choix { display: flex; align-items: center; justify-content: center; gap: 7px; min-height: 42px; margin: 0; padding: 8px; border: 1px solid var(--bord); border-radius: 10px; font-size: 13.5px; font-weight: 500; color: var(--texte); cursor: pointer; transition: border-color .15s, background-color .15s; }
+    .choix input { position: absolute; opacity: 0; pointer-events: none; }
+    .choix:has(input:checked) { border-color: var(--primaire); background: var(--primaire-doux); }
+    .cases { display: grid; gap: 6px; }
+    .case { display: flex; align-items: center; gap: 10px; min-height: 46px; margin: 0; padding: 10px 12px; border: 1px solid var(--bord); border-radius: 10px; font-size: 14px; font-weight: 400; color: var(--texte); cursor: pointer; }
+    .case:has(input:checked) { border-color: color-mix(in srgb, var(--primaire) 50%, var(--bord)); }
+    .case .nb { margin-left: auto; color: var(--doux); font-size: 13px; font-variant-numeric: tabular-nums; }
+    .resume-tournee { margin-top: 14px; font-weight: 600; }
+    .apercu-seuils { display: grid; gap: 8px; margin-top: 14px; font-size: 14px; }
+    .apercu-seuils div { display: flex; align-items: center; gap: 8px; }
+    .ligne-loc { display: flex; gap: 12px; align-items: flex-start; margin: 0; padding: 10px 2px; border-bottom: 1px solid var(--bord); font-size: 14px; font-weight: 400; color: var(--texte); cursor: pointer; }
+    .ligne-loc small { display: block; margin-top: 2px; color: var(--doux); font-size: 12.5px; }
+    .ligne-loc input { margin-top: 2px; }
+    .resume-loc { display: grid; gap: 6px; font-size: 14px; background: var(--surface-2); border-radius: 10px; padding: 12px; }
+    .resume-loc div { display: flex; align-items: center; gap: 8px; }
+    .etapes-loc { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; font-size: 14px; }
+    .etapes-loc li { display: flex; gap: 10px; align-items: flex-start; }
+    .etapes-loc .i { margin-top: 1px; color: var(--primaire); }
+    @keyframes fondu { from { opacity: 0; } }
+    @keyframes glisse { from { transform: translateY(40px); opacity: .4; } }
+    @keyframes apparait { from { transform: translateY(8px) scale(.985); opacity: 0; } }
+
+    /* ================= Notification ================= */
+    #toast { position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom)); z-index: 3000; display: flex; align-items: center; gap: 8px; max-width: calc(100% - 32px); padding: 10px 16px; border-radius: 10px; background: #1b1e24; color: #f1f2f4; font-size: 14px; box-shadow: var(--ombre-haute); transform: translateX(-50%); animation: apparait .2s ease-out; }
   </style>
 </head>
 <body>
+  <!-- Icônes -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-route" viewBox="0 0 24 24"><circle cx="6" cy="19" r="3"/><path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15"/><circle cx="18" cy="5" r="3"/></symbol>
+    <symbol id="i-reglages" viewBox="0 0 24 24"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></symbol>
+    <symbol id="i-sortie" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></symbol>
+    <symbol id="i-goutte" viewBox="0 0 24 24"><path d="M12 2.7S6 8.9 6 14a6 6 0 0 0 12 0c0-5.1-6-11.3-6-11.3z"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+    <symbol id="i-crayon" viewBox="0 0 24 24"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></symbol>
+    <symbol id="i-naviguer" viewBox="0 0 24 24"><path d="m3 11 19-9-9 19-2-8-8-2z"/></symbol>
+    <symbol id="i-tel" viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></symbol>
+    <symbol id="i-epingle" viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></symbol>
+    <symbol id="i-viseur" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2.5"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></symbol>
+    <symbol id="i-loupe" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+    <symbol id="i-passer" viewBox="0 0 24 24"><path d="m5 4 10 8-10 8V4zM19 5v14"/></symbol>
+    <symbol id="i-corbeille" viewBox="0 0 24 24"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></symbol>
+    <symbol id="i-personne" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol>
+    <symbol id="i-horloge" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+    <symbol id="i-carte" viewBox="0 0 24 24"><path d="M9 3 3 6v15l6-3 6 3 6-3V3l-6 3-6-3zM9 3v15M15 6v15"/></symbol>
+    <symbol id="i-soleil" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M6.3 17.7l-1.4 1.4M19.1 4.9l-1.4 1.4"/></symbol>
+    <symbol id="i-lune" viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></symbol>
+    <symbol id="i-ecran" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></symbol>
+    <symbol id="i-lien" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></symbol>
+    <symbol id="i-boutique" viewBox="0 0 24 24"><path d="M3 9 4.5 4h15L21 9M4 9v11h16V9M3 9h18M9 20v-6h6v6"/></symbol>
+    <symbol id="i-ville" viewBox="0 0 24 24"><path d="M3 21h18M5 21V8l6-4v17M11 21V10l8 3v8M8 11v.01M8 15v.01M15 15v.01M15 18v.01"/></symbol>
+    <symbol id="i-annuler" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></symbol>
+    <symbol id="i-alerte" viewBox="0 0 24 24"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0zM12 9v4M12 17h.01"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 16v-4M12 8h.01"/></symbol>
+  </svg>
+
   <!-- ================= Connexion ================= -->
   <section id="connexion">
     <form class="boite-connexion" id="formConnexion">
-      <img src="assets/logo.png" alt="Rengo — L'union fait la force">
-      <h1>Suivi des tirelires</h1>
-      <p>Entre le code d'accès de l'association</p>
-      <input id="code" type="password" placeholder="Code d'accès" autocomplete="current-password" required>
-      <button class="btn" style="width:100%;margin-top:12px;padding:12px">Entrer</button>
-      <div id="erreurConnexion" class="erreur"></div>
+      <img class="logo-clair" src="assets/logo.png" alt="Rengo — L'union fait la force">
+      <img class="logo-sombre" src="assets/logo-sombre.png" alt="Rengo — L'union fait la force">
+      <div class="panneau">
+        <h1>Suivi des tirelires</h1>
+        <p>Entre le code d'accès de l'association.</p>
+        <input id="code" type="password" placeholder="Code d'accès" autocomplete="current-password" aria-label="Code d'accès" required>
+        <button class="btn">Entrer</button>
+        <div id="erreurConnexion" class="erreur" role="alert"></div>
+      </div>
     </form>
   </section>
 
@@ -193,12 +323,13 @@
   <div id="app" class="cache">
     <header>
       <div class="entete">
-        <img src="assets/logo.png" alt="Rengo">
+        <img class="logo-clair" src="assets/logo.png" alt="Rengo">
+        <img class="logo-sombre" src="assets/logo-sombre.png" alt="Rengo">
         <span class="titre">Tirelires</span>
         <span class="espace"></span>
-        <button class="btn degrade" id="btnTournee">🧭 Tournée</button>
-        <button class="btn leger icone" id="btnParametres" title="Paramètres" aria-label="Paramètres">⚙️</button>
-        <button class="btn leger icone" id="btnDeconnexion" title="Se déconnecter" aria-label="Se déconnecter">🚪</button>
+        <button class="btn secondaire avec-texte" id="btnTournee" title="Préparer une tournée" aria-label="Préparer une tournée"><svg class="i"><use href="#i-route"/></svg><span class="masque-mobile">Tournée</span></button>
+        <button class="btn avec-texte" id="btnAjouter" title="Nouvelle tirelire" aria-label="Nouvelle tirelire"><svg class="i"><use href="#i-plus"/></svg><span class="masque-mobile">Nouvelle tirelire</span></button>
+        <button class="btn discret carre" id="btnParametres" title="Paramètres" aria-label="Paramètres"><svg class="i"><use href="#i-reglages"/></svg></button>
       </div>
     </header>
 
@@ -207,16 +338,17 @@
 
       <div class="grille">
         <div class="colonne-carte">
-          <div class="panneau" style="padding:6px">
-            <div id="carte"></div>
-          </div>
+          <div class="panneau cadre-carte"><div id="carte"></div></div>
           <div class="legende" id="legende"></div>
         </div>
 
         <!-- Vue normale : liste -->
         <div id="vueListe">
           <div class="outils">
-            <input class="recherche" id="recherche" type="search" placeholder="🔎 Commerce, ville, adresse, contact…">
+            <div class="champ-icone">
+              <svg class="i"><use href="#i-loupe"/></svg>
+              <input id="recherche" type="search" placeholder="Commerce, ville, adresse, contact" aria-label="Rechercher">
+            </div>
             <select id="filtreStatut" aria-label="Statut">
               <option value="actives">Actives</option>
               <option value="en_place">En place</option>
@@ -226,15 +358,19 @@
               <option value="toutes">Tous les statuts</option>
             </select>
             <select id="filtreVille" aria-label="Ville"><option value="">Toutes les villes</option></select>
-            <select id="tri" aria-label="Trier">
-              <option value="urgence">Plus urgentes</option>
-              <option value="recentes">Plus récentes</option>
-              <option value="nom">Nom A → Z</option>
-              <option value="ville">Ville</option>
-            </select>
           </div>
           <div id="bandeauLocalisation"></div>
-          <div class="compteur" id="compteur"></div>
+          <div class="barre-liste">
+            <span class="compteur" id="compteur"></span>
+            <label class="tri" style="margin:0">Trier
+              <select id="tri" aria-label="Trier">
+                <option value="urgence">par urgence</option>
+                <option value="recentes">plus récentes</option>
+                <option value="nom">par nom</option>
+                <option value="ville">par ville</option>
+              </select>
+            </label>
+          </div>
           <div id="liste"></div>
         </div>
 
@@ -243,28 +379,27 @@
       </div>
     </main>
 
-    <button class="btn fab" id="btnAjouter">＋ Nouvelle tirelire</button>
   </div>
 
   <!-- ================= Fenêtre : ajouter / modifier ================= -->
-  <div class="voile cache" id="fenetreFiche">
+  <div class="voile cache" id="fenetreFiche" role="dialog" aria-modal="true" aria-labelledby="titreFiche">
     <form class="fenetre" id="formFiche" novalidate>
       <div class="tete">
         <h2 id="titreFiche">Nouvelle tirelire</h2>
-        <button type="button" class="btn leger icone" data-fermer aria-label="Fermer">✕</button>
+        <button type="button" class="btn discret carre" data-fermer aria-label="Fermer"><svg class="i"><use href="#i-x"/></svg></button>
       </div>
       <div class="corps">
         <div id="blocStatut">
-          <label>Statut</label>
-          <div class="choix-statut">
-            <label><input type="radio" name="statut" value="en_place">🟢 En place</label>
-            <label><input type="radio" name="statut" value="a_poser">🎯 À poser</label>
-            <label><input type="radio" name="statut" value="refus">❌ Refus</label>
-            <label><input type="radio" name="statut" value="retiree">🔁 Retirée</label>
+          <label style="margin-top:6px">Statut</label>
+          <div class="choix-groupe quatre">
+            <label class="choix"><input type="radio" name="statut" value="en_place"><span class="point" style="--c:var(--vert)"></span>En place</label>
+            <label class="choix"><input type="radio" name="statut" value="a_poser"><span class="point creux" style="--c:var(--primaire)"></span>À poser</label>
+            <label class="choix"><input type="radio" name="statut" value="refus"><span class="point" style="--c:var(--gris)"></span>Refus</label>
+            <label class="choix"><input type="radio" name="statut" value="retiree"><span class="point" style="--c:var(--gris-fonce)"></span>Retirée</label>
           </div>
         </div>
 
-        <label for="champEntreprise">Commerce *</label>
+        <label for="champEntreprise">Commerce</label>
         <input id="champEntreprise" name="entreprise" placeholder="Ex. Boulangerie du centre" required>
         <div class="deux">
           <div>
@@ -281,13 +416,13 @@
         <input id="champAdresse" name="adresse" placeholder="Remplie automatiquement depuis la position">
 
         <label>Position sur la carte</label>
-        <div class="position-actions">
-          <button type="button" class="btn petit" id="btnMaPosition">📍 Utiliser ma position</button>
-          <button type="button" class="btn leger petit" id="btnDepuisAdresse">🔎 Depuis l'adresse</button>
-          <button type="button" class="btn leger petit cache" id="btnRetirerPosition">Retirer</button>
+        <div class="rangee">
+          <button type="button" class="btn petit" id="btnMaPosition"><svg class="i petit"><use href="#i-viseur"/></svg><span>Ma position</span></button>
+          <button type="button" class="btn secondaire petit" id="btnDepuisAdresse"><svg class="i petit"><use href="#i-loupe"/></svg>Depuis l'adresse</button>
+          <button type="button" class="btn discret petit cache" id="btnRetirerPosition">Retirer le point</button>
         </div>
         <div id="miniCarte"></div>
-        <div class="position-info" id="positionInfo">Touche la carte pour placer le point (tu peux ensuite le déplacer).</div>
+        <div class="position-info" id="positionInfo"></div>
 
         <div id="blocVidage" class="deux">
           <div>
@@ -295,7 +430,7 @@
             <input id="champVidage" name="dernier_vidage" type="date">
           </div>
           <div style="display:flex;align-items:flex-end">
-            <button type="button" class="btn leger petit" id="btnVidageAujourdhui" style="margin-bottom:4px">Aujourd'hui</button>
+            <button type="button" class="btn secondaire" id="btnVidageAujourdhui" style="width:100%">Aujourd'hui</button>
           </div>
         </div>
 
@@ -308,7 +443,7 @@
             </div>
             <div>
               <label for="champContactTel">Téléphone</label>
-              <input id="champContactTel" name="contact_tel" type="tel" placeholder="06 12 34 56 78">
+              <input id="champContactTel" name="contact_tel" type="tel" inputmode="tel" placeholder="06 12 34 56 78">
             </div>
           </div>
           <label for="champHoraires">Horaires d'ouverture</label>
@@ -318,72 +453,72 @@
 
         <label for="champNotes">Notes</label>
         <textarea id="champNotes" name="notes" rows="3" placeholder="Remarques, emplacement dans le magasin…"></textarea>
-        <div id="erreurFiche" class="erreur"></div>
+        <div id="erreurFiche" class="erreur" role="alert"></div>
       </div>
       <div class="pied">
-        <button type="button" class="btn danger cache" id="btnSupprimer">Supprimer</button>
+        <button type="button" class="btn danger carre cache" id="btnSupprimer" title="Supprimer" aria-label="Supprimer"><svg class="i"><use href="#i-corbeille"/></svg></button>
         <span class="espace"></span>
-        <button type="button" class="btn leger" data-fermer>Annuler</button>
+        <button type="button" class="btn secondaire" data-fermer>Annuler</button>
         <button class="btn" id="btnEnregistrer">Enregistrer</button>
       </div>
     </form>
   </div>
 
   <!-- ================= Fenêtre : préparer une tournée ================= -->
-  <div class="voile cache" id="fenetreTournee">
+  <div class="voile cache" id="fenetreTournee" role="dialog" aria-modal="true" aria-labelledby="titreTournee">
     <form class="fenetre" id="formTournee" style="max-width:460px">
       <div class="tete">
-        <h2>🧭 Préparer une tournée</h2>
-        <button type="button" class="btn leger icone" data-fermer aria-label="Fermer">✕</button>
+        <h2 id="titreTournee">Préparer une tournée</h2>
+        <button type="button" class="btn discret carre" data-fermer aria-label="Fermer"><svg class="i"><use href="#i-x"/></svg></button>
       </div>
       <div class="corps">
-        <label for="tourneeVille">Ville</label>
+        <label for="tourneeVille" style="margin-top:6px">Ville</label>
         <select id="tourneeVille" required></select>
 
         <label>Tirelires à inclure</label>
-        <div class="coches" id="tourneeCoches"></div>
+        <div class="cases" id="tourneeCoches"></div>
 
-        <label>Point de départ</label>
-        <div class="coches">
-          <label><input type="radio" name="depart" value="position" checked> 📍 Ma position actuelle</label>
-          <label><input type="radio" name="depart" value="libre"> Le trajet le plus court, peu importe le départ</label>
+        <label>Départ</label>
+        <div class="cases">
+          <label class="case"><input type="radio" name="depart" value="position" checked>Depuis ma position actuelle</label>
+          <label class="case"><input type="radio" name="depart" value="libre">Trajet le plus court, peu importe le départ</label>
         </div>
         <div class="resume-tournee" id="tourneeResume"></div>
-        <div class="aide">L'ordre est calculé pour limiter la distance à parcourir (à vol d'oiseau). Les tirelires sans position GPS ne peuvent pas être incluses.</div>
+        <div class="aide">L'ordre est calculé pour limiter la distance (à vol d'oiseau). Les tirelires sans position ne peuvent pas être incluses.</div>
       </div>
       <div class="pied">
         <span class="espace"></span>
-        <button type="button" class="btn leger" data-fermer>Annuler</button>
-        <button class="btn degrade" id="btnLancerTournee">Lancer la tournée</button>
+        <button type="button" class="btn secondaire" data-fermer>Annuler</button>
+        <button class="btn" id="btnLancerTournee">Lancer la tournée</button>
       </div>
     </form>
   </div>
 
   <!-- ================= Fenêtre : localisation automatique ================= -->
-  <div class="voile cache" id="fenetreLocalisation">
+  <div class="voile cache" id="fenetreLocalisation" role="dialog" aria-modal="true" aria-labelledby="titreLocalisation">
     <div class="fenetre" style="max-width:600px">
       <div class="tete">
-        <h2>📍 Localiser automatiquement</h2>
-        <button type="button" class="btn leger icone" data-fermer aria-label="Fermer">✕</button>
+        <h2 id="titreLocalisation">Localiser automatiquement</h2>
+        <button type="button" class="btn discret carre" data-fermer aria-label="Fermer"><svg class="i"><use href="#i-x"/></svg></button>
       </div>
       <div class="corps">
         <div id="locEtape1">
-          <p style="margin-top:0"><b id="locNombre"></b> n'ont pas de position. Pour chacune, le site va :</p>
-          <ol style="padding-left:20px;margin:0;display:grid;gap:6px;font-size:14px">
-            <li>🏪 <b>chercher le commerce par son nom</b> dans sa ville (carte OpenStreetMap) ;</li>
-            <li>🔗 sinon, la placer <b>à côté de la tirelire citée dans son nom</b> (« collée à… », « en face de… ») ;</li>
-            <li>🏙️ sinon, la placer <b>dans la zone de sa ville</b>, là où sont les autres tirelires : position approximative, à vérifier sur place.</li>
+          <p style="margin-top:6px"><b id="locNombre"></b> n'ont pas de position. Pour chacune, le site va, dans l'ordre :</p>
+          <ol class="etapes-loc">
+            <li><svg class="i"><use href="#i-boutique"/></svg><span><b>chercher le commerce par son nom</b> dans sa ville (carte OpenStreetMap) ;</span></li>
+            <li><svg class="i"><use href="#i-lien"/></svg><span>sinon, la placer <b>à côté de la tirelire citée dans son nom</b> (« collée à… », « en face de… ») ;</span></li>
+            <li><svg class="i"><use href="#i-ville"/></svg><span>sinon, la placer <b>dans la zone de sa ville</b>, près des autres tirelires. Position approximative, à vérifier sur place.</span></li>
           </ol>
-          <div class="aide">Rien n'est enregistré avant que tu valides la liste. Compte 2 à 4 minutes pour 150 tirelires (les services de cartes limitent le nombre de recherches par seconde). Garde cette fenêtre ouverte.</div>
+          <div class="aide">Rien n'est enregistré avant ta validation. Compte 2 à 4 minutes pour 150 tirelires (les services de cartes limitent le nombre de recherches). Garde cette fenêtre ouverte.</div>
           <div id="locMigration" class="aide attention cache">Lance d'abord <b>migration_v4.sql</b> dans Supabase pour pouvoir marquer les positions approximatives.</div>
         </div>
         <div id="locEtape2" class="cache">
-          <p id="locMessage" style="margin-top:0">Préparation…</p>
+          <p id="locMessage" style="margin-top:6px">Préparation…</p>
           <div class="progression"><div id="locBarre" style="width:0"></div></div>
           <div id="locAvancement" style="font-size:13px;color:var(--doux)"></div>
         </div>
         <div id="locEtape3" class="cache">
-          <div id="locResume"></div>
+          <div id="locResume" class="resume-loc" style="margin-top:6px"></div>
           <div id="locResultats"></div>
         </div>
       </div>
@@ -392,37 +527,47 @@
   </div>
 
   <!-- ================= Fenêtre : paramètres ================= -->
-  <div class="voile cache" id="fenetreParametres">
-    <form class="fenetre" id="formParametres" style="max-width:440px">
+  <div class="voile cache" id="fenetreParametres" role="dialog" aria-modal="true" aria-labelledby="titreParametres">
+    <form class="fenetre" id="formParametres" style="max-width:460px">
       <div class="tete">
-        <h2>Paramètres</h2>
-        <button type="button" class="btn leger icone" data-fermer aria-label="Fermer">✕</button>
+        <h2 id="titreParametres">Paramètres</h2>
+        <button type="button" class="btn discret carre" data-fermer aria-label="Fermer"><svg class="i"><use href="#i-x"/></svg></button>
       </div>
       <div class="corps">
-        <p style="margin:0;color:var(--doux);font-size:14px">Couleur d'une tirelire en place selon le temps écoulé depuis son dernier vidage (ou sa pose si elle n'a jamais été vidée).</p>
+        <div class="section" style="margin-top:8px">Apparence</div>
+        <div class="choix-groupe trois" style="margin-top:10px" id="choixTheme">
+          <label class="choix"><input type="radio" name="theme" value="auto"><svg class="i petit"><use href="#i-ecran"/></svg>Auto</label>
+          <label class="choix"><input type="radio" name="theme" value="light"><svg class="i petit"><use href="#i-soleil"/></svg>Clair</label>
+          <label class="choix"><input type="radio" name="theme" value="dark"><svg class="i petit"><use href="#i-lune"/></svg>Sombre</label>
+        </div>
+
+        <div class="section">Couleurs de vidage</div>
+        <p style="margin:8px 0 0;color:var(--doux);font-size:14px">Selon le temps écoulé depuis le dernier vidage (ou la pose si la tirelire n'a jamais été vidée). Partagé avec tous les membres.</p>
         <div class="deux">
           <div>
-            <label for="champOrange">Orange à partir de (mois)</label>
-            <input id="champOrange" type="number" min="0.5" max="59" step="0.5" required>
+            <label for="champOrange">Orange dès (mois)</label>
+            <input id="champOrange" type="number" min="0.5" max="59" step="0.5" inputmode="decimal" required>
           </div>
           <div>
-            <label for="champRouge">Rouge à partir de (mois)</label>
-            <input id="champRouge" type="number" min="1" max="60" step="0.5" required>
+            <label for="champRouge">Rouge dès (mois)</label>
+            <input id="champRouge" type="number" min="1" max="60" step="0.5" inputmode="decimal" required>
           </div>
         </div>
         <div class="apercu-seuils" id="apercuSeuils"></div>
-        <div class="aide">Ces réglages sont partagés : ils s'appliquent à tous les membres.</div>
-        <div id="erreurParametres" class="erreur"></div>
+        <div id="erreurParametres" class="erreur" role="alert"></div>
+
+        <div class="section">Compte</div>
+        <button type="button" class="btn secondaire" id="btnDeconnexion" style="width:100%;margin-top:10px"><svg class="i"><use href="#i-sortie"/></svg>Se déconnecter de cet appareil</button>
       </div>
       <div class="pied">
         <span class="espace"></span>
-        <button type="button" class="btn leger" data-fermer>Annuler</button>
+        <button type="button" class="btn secondaire" data-fermer>Annuler</button>
         <button class="btn">Enregistrer</button>
       </div>
     </form>
   </div>
 
-  <div id="toast" class="cache"></div>
+  <div id="toast" class="cache" role="status" aria-live="polite"></div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
   <script>
@@ -431,6 +576,7 @@
       lire(cle) { try { return localStorage.getItem(cle); } catch { return null; } },
       ecrire(cle, valeur) { try { valeur === null ? localStorage.removeItem(cle) : localStorage.setItem(cle, valeur); } catch {} },
     };
+    const icone = (nom, petit) => `<svg class="i${petit ? ' petit' : ''}" aria-hidden="true"><use href="#i-${nom}"/></svg>`;
 
     let code = stockage.lire('rengo-code') || '';
     let tirelires = [];
@@ -442,19 +588,27 @@
     let miniCarte, marqueurFiche = null, positionFiche = null, ficheEnCours = null, positionModifiee = false;
     let tournee = null;
 
-    // Urgence de vidage (tirelires en place)
-    const URGENCES = {
-      ok: { libelle: 'OK', hex: '#22a861' },
-      bientot: { libelle: 'Bientôt', hex: '#f08c1a' },
-      urgent: { libelle: 'À vider', hex: '#e04848' },
-    };
-    // Statut de la tirelire
+    // Couleurs lues dans le thème courant (clair ou sombre)
+    const couleurCss = (nom) => getComputedStyle(document.documentElement).getPropertyValue('--' + nom).trim();
+    const URGENCES = { ok: { libelle: 'OK', var: 'vert' }, bientot: { libelle: 'Bientôt', var: 'orange' }, urgent: { libelle: 'À vider', var: 'rouge' } };
     const ETATS = {
-      en_place: { libelle: 'En place', icone: '🟢' },
-      a_poser: { libelle: 'À poser', icone: '🎯', hex: '#4a86c5' },
-      refus: { libelle: 'Refus', icone: '❌', hex: '#8a8f9c' },
-      retiree: { libelle: 'Retirée', icone: '🔁', hex: '#5d6270' },
+      en_place: { libelle: 'En place' },
+      a_poser: { libelle: 'À poser', var: 'primaire' },
+      refus: { libelle: 'Refus', var: 'gris' },
+      retiree: { libelle: 'Retirée', var: 'gris-fonce' },
     };
+
+    // ================= Thème =================
+    function choixTheme() { return stockage.lire('rengo-theme') || 'auto'; }
+    function appliquerTheme(theme) {
+      if (theme === 'light' || theme === 'dark') document.documentElement.dataset.theme = theme;
+      else delete document.documentElement.dataset.theme;
+      stockage.ecrire('rengo-theme', theme === 'auto' ? null : theme);
+      document.querySelector('meta[name="theme-color"]').content = couleurCss('fond');
+      if (carte && !$('app').classList.contains('cache')) rafraichir(false);
+    }
+    matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { if (choixTheme() === 'auto') appliquerTheme('auto'); });
+    document.querySelector('meta[name="theme-color"]').content = couleurCss('fond');
 
     // ================= Utilitaires =================
     const echapper = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -466,6 +620,7 @@
     const etat = (t) => t.statut || 'en_place';
     const lienTel = (tel) => 'tel:' + String(tel).replace(/[^\d+]/g, '');
     const lienItineraire = (t) => `https://www.google.com/maps/dir/?api=1&destination=${t.lat},${t.lng}`;
+    const retarder = (fn, ms) => { let m; return (...a) => { clearTimeout(m); m = setTimeout(() => fn(...a), ms); }; };
 
     function duree(j) {
       if (j <= 0) return "aujourd'hui";
@@ -482,7 +637,8 @@
       return mois < seuils.orange ? 'ok' : mois < seuils.rouge ? 'bientot' : 'urgent';
     }
     // Couleur affichée : urgence pour une tirelire en place, couleur du statut sinon
-    const couleur = (t) => (etat(t) === 'en_place' ? URGENCES[urgence(t)].hex : ETATS[etat(t)].hex);
+    const varCouleur = (t) => (etat(t) === 'en_place' ? URGENCES[urgence(t)].var : ETATS[etat(t)].var);
+    const couleur = (t) => `var(--${varCouleur(t)})`;
     function prochainPassage(t) {
       const d = new Date(dateReference(t) + 'T00:00:00');
       d.setDate(d.getDate() + Math.round(seuils.orange * 30.44));
@@ -490,8 +646,8 @@
     }
 
     let minuteurToast;
-    function toast(message) {
-      $('toast').textContent = message;
+    function toast(message, icon = 'check') {
+      $('toast').innerHTML = `${icone(icon, true)}<span>${echapper(message)}</span>`;
       $('toast').classList.remove('cache');
       clearTimeout(minuteurToast);
       minuteurToast = setTimeout(() => $('toast').classList.add('cache'), 2600);
@@ -543,7 +699,10 @@
       e.preventDefault();
       code = $('code').value.trim();
       $('erreurConnexion').textContent = '';
+      const bouton = e.target.querySelector('button');
+      bouton.disabled = true;
       try { await demarrer(); } catch (err) { $('erreurConnexion').textContent = err.message; }
+      bouton.disabled = false;
     };
 
     function deconnexion() {
@@ -551,6 +710,7 @@
       code = '';
       $('app').classList.add('cache');
       $('connexion').classList.remove('cache');
+      fermerFenetres();
     }
     $('btnDeconnexion').onclick = deconnexion;
 
@@ -570,7 +730,7 @@
 
     // ================= Carte principale =================
     function initCarte() {
-      carte = L.map('carte').setView([49.1, 2.5], 9);
+      carte = L.map('carte', { preferCanvas: true, zoomSnap: .5 }).setView([49.1, 2.5], 9);
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap', maxZoom: 19 }).addTo(carte);
       calque = L.layerGroup().addTo(carte);
       carte.on('popupopen', (e) => {
@@ -578,32 +738,35 @@
       });
     }
 
+    // Boutons d'une tirelire : action principale avec texte, actions secondaires en icônes
     function boutonsAction(t, dansPopup) {
       const e = etat(t);
       const b = [];
-      if (e === 'en_place') b.push(`<button class="btn petit" data-action="vider" data-id="${t.id}">💧 Vidée</button>`);
-      if (e === 'a_poser') b.push(`<button class="btn vert petit" data-action="poser" data-id="${t.id}">✅ Posée</button>`);
-      b.push(`<button class="btn leger petit" data-action="modifier" data-id="${t.id}">✏️ Modifier</button>`);
-      if (aPosition(t)) b.push(`<a class="btn leger petit" target="_blank" rel="noopener" href="${lienItineraire(t)}">🧭${dansPopup ? '' : ' Y aller'}</a>`);
-      else if (!dansPopup) b.push(`<button class="btn leger petit" data-action="modifier" data-id="${t.id}">📍 Placer</button>`);
-      if (t.contact_tel) b.push(`<a class="btn leger petit" href="${lienTel(t.contact_tel)}">📞${dansPopup ? '' : ' Appeler'}</a>`);
+      if (e === 'en_place') b.push(`<button class="btn petit" data-action="vider" data-id="${t.id}">${icone('goutte', true)}Vidée</button>`);
+      if (e === 'a_poser') b.push(`<button class="btn succes petit" data-action="poser" data-id="${t.id}">${icone('check', true)}Posée</button>`);
+      b.push(`<button class="btn secondaire petit ${dansPopup ? 'carre' : ''}" data-action="modifier" data-id="${t.id}" title="Modifier" aria-label="Modifier">${icone('crayon', true)}${dansPopup ? '' : 'Modifier'}</button>`);
+      if (aPosition(t)) b.push(`<a class="btn secondaire petit carre" target="_blank" rel="noopener" href="${lienItineraire(t)}" title="Itinéraire" aria-label="Itinéraire">${icone('naviguer', true)}</a>`);
+      else if (!dansPopup && e !== 'refus' && e !== 'retiree') b.push(`<button class="btn secondaire petit" data-action="modifier" data-id="${t.id}">${icone('epingle', true)}Placer</button>`);
+      if (t.contact_tel) b.push(`<a class="btn secondaire petit carre" href="${lienTel(t.contact_tel)}" title="Appeler" aria-label="Appeler">${icone('tel', true)}</a>`);
       return b.join('');
     }
 
     function marqueur(t) {
       const e = etat(t);
+      const teinte = couleurCss(varCouleur(t));
+      const bordure = couleurCss('surface');
       const style = e === 'en_place'
-        ? { radius: 9, color: '#fff', weight: 2.5, fillColor: couleur(t), fillOpacity: 1 }
+        ? { radius: 8, color: bordure, weight: 2, fillColor: teinte, fillOpacity: 1 }
         : e === 'a_poser'
-          ? { radius: 8, color: ETATS.a_poser.hex, weight: 3, fillColor: '#fff', fillOpacity: 1 }
-          : { radius: 6, color: '#fff', weight: 2, fillColor: ETATS[e].hex, fillOpacity: .9 };
-      if (t.position_approx) Object.assign(style, { color: '#1c1d21', weight: 1.5, dashArray: '3 3', fillOpacity: .45 });
+          ? { radius: 7, color: teinte, weight: 3, fillColor: bordure, fillOpacity: 1 }
+          : { radius: 5.5, color: bordure, weight: 1.5, fillColor: teinte, fillOpacity: .9 };
+      if (t.position_approx) Object.assign(style, { color: couleurCss('texte'), weight: 1.2, dashArray: '2 3', fillOpacity: .5 });
       const detail = e === 'en_place'
         ? `${URGENCES[urgence(t)].libelle} · ${t.dernier_vidage ? 'vidée ' + duree(joursDepuis(t.dernier_vidage)) : 'posée ' + duree(joursDepuis(t.date_pose))}`
-        : `${ETATS[e].icone} ${ETATS[e].libelle}`;
+        : ETATS[e].libelle;
       return L.circleMarker([t.lat, t.lng], style).bindPopup(`
         <div class="popup-nom">${echapper(t.entreprise)}</div>
-        <div class="popup-detail">${echapper(t.adresse || t.ville || '')}<br>${detail}${t.position_approx ? '<br>📍 Position approximative, à vérifier' : ''}</div>
+        <div class="popup-detail">${echapper(t.adresse || t.ville || '')}<br>${detail}${t.position_approx ? '<br>Position approximative' : ''}</div>
         <div class="popup-actions">${boutonsAction(t, true)}</div>`);
     }
 
@@ -643,25 +806,25 @@
         if (e === 'en_place' || e === 'a_poser') { n.actives++; if (!aPosition(t) || t.position_approx) n.sans++; }
       });
       const tuiles = [
-        ['', n.actives, 'Actives', '#4a86c5', ''],
-        ['ok', n.ok, 'OK', URGENCES.ok.hex, ''],
-        ['bientot', n.bientot, 'Bientôt', URGENCES.bientot.hex, ''],
-        ['urgent', n.urgent, 'À vider', URGENCES.urgent.hex, ''],
-        ['a_poser', n.a_poser, 'À poser', ETATS.a_poser.hex, 'creux'],
-        ['sans', n.sans, 'À localiser', '#9aa0ad', ''],
+        ['', n.actives, 'Actives', ''],
+        ['ok', n.ok, 'OK', '<span class="point" style="--c:var(--vert)"></span>'],
+        ['bientot', n.bientot, 'Bientôt', '<span class="point" style="--c:var(--orange)"></span>'],
+        ['urgent', n.urgent, 'À vider', '<span class="point" style="--c:var(--rouge)"></span>'],
+        ['a_poser', n.a_poser, 'À poser', '<span class="point creux" style="--c:var(--primaire)"></span>'],
+        ['sans', n.sans, 'À localiser', '<span class="point approx"></span>'],
       ];
-      $('stats').innerHTML = tuiles.map(([cle, nb, libelle, hex, classe]) => `
-        <button class="tuile ${filtreTuile === cle ? 'actif' : ''}" data-filtre="${cle}">
-          <div class="nombre">${nb}</div>
-          <div class="libelle"><span class="point ${classe}" style="background:${hex}"></span>${libelle}</div>
+      $('stats').innerHTML = tuiles.map(([cle, nb, libelle, puce]) => `
+        <button class="tuile ${filtreTuile === cle ? 'actif' : ''}" data-filtre="${cle}" aria-pressed="${filtreTuile === cle}">
+          <span class="nombre">${nb}</span>
+          <span class="libelle">${puce}${libelle}</span>
         </button>`).join('');
       $('legende').innerHTML = `
-        <span><span class="point" style="background:${URGENCES.ok.hex}"></span>vidée il y a moins de ${seuils.orange} mois</span>
-        <span><span class="point" style="background:${URGENCES.bientot.hex}"></span>${seuils.orange} à ${seuils.rouge} mois</span>
-        <span><span class="point" style="background:${URGENCES.urgent.hex}"></span>plus de ${seuils.rouge} mois</span>
-        <span><span class="point creux"></span>à poser</span>
-        <span><span class="point" style="background:${ETATS.refus.hex}"></span>refus / retirée</span>
-        <span><span class="point" style="background:#c9ccd4;outline:1.5px dashed #6b7080;outline-offset:1px"></span>position approximative</span>`;
+        <span><span class="point" style="--c:var(--vert)"></span>&lt; ${seuils.orange} mois</span>
+        <span><span class="point" style="--c:var(--orange)"></span>${seuils.orange} à ${seuils.rouge} mois</span>
+        <span><span class="point" style="--c:var(--rouge)"></span>&gt; ${seuils.rouge} mois</span>
+        <span><span class="point creux" style="--c:var(--primaire)"></span>À poser</span>
+        <span><span class="point" style="--c:var(--gris)"></span>Refus / retirée</span>
+        <span><span class="point approx"></span>Approximative</span>`;
     }
 
     function afficherVilles() {
@@ -679,20 +842,24 @@
         b.push(`<span class="badge statut">${URGENCES[urgence(t)].libelle}</span>`);
         b.push(`<span class="badge">Posée ${duree(joursDepuis(t.date_pose))}</span>`);
         b.push(`<span class="badge">${t.dernier_vidage ? 'Vidée ' + duree(joursDepuis(t.dernier_vidage)) : 'Jamais vidée'}</span>`);
-        b.push(`<span class="badge">${prochain < aujourdhui() ? 'Passage dépassé depuis le ' : 'Repasser avant le '}${dateFr(prochain, true)}</span>`);
+        b.push(`<span class="badge">${prochain < aujourdhui() ? 'En retard depuis le ' : 'À repasser avant le '}${dateFr(prochain, true)}</span>`);
       } else {
-        b.push(`<span class="badge statut">${ETATS[e].icone} ${ETATS[e].libelle}</span>`);
+        b.push(`<span class="badge statut">${ETATS[e].libelle}</span>`);
         if (e === 'a_poser') b.push(`<span class="badge">Repérée ${duree(joursDepuis(t.date_pose))}</span>`);
         if (e === 'retiree' && t.dernier_vidage) b.push(`<span class="badge">Dernier vidage le ${dateFr(t.dernier_vidage)}</span>`);
       }
-      if (!aPosition(t) && (e === 'en_place' || e === 'a_poser')) b.push('<span class="badge" style="background:#fff3e0;color:#9a5a00">📍 Sans position</span>');
-      if (aPosition(t) && t.position_approx) b.push('<span class="badge" style="background:#fff3e0;color:#9a5a00">📍 Position approximative</span>');
+      if (!aPosition(t) && (e === 'en_place' || e === 'a_poser')) b.push(`<span class="badge alerte">${icone('epingle', true)}Sans position</span>`);
+      if (aPosition(t) && t.position_approx) b.push(`<span class="badge alerte">${icone('alerte', true)}Position approximative</span>`);
       return b.join('');
     }
 
     function contact(t) {
-      const parts = [t.contact_nom && `👤 ${echapper(t.contact_nom)}`, t.contact_tel && `📞 ${echapper(t.contact_tel)}`, t.horaires && `🕒 ${echapper(t.horaires)}`].filter(Boolean);
-      return parts.length ? `<div class="contact">${parts.join(' · ')}</div>` : '';
+      const parts = [
+        t.contact_nom && `<span>${icone('personne', true)}${echapper(t.contact_nom)}</span>`,
+        t.contact_tel && `<span>${icone('tel', true)}${echapper(t.contact_tel)}</span>`,
+        t.horaires && `<span>${icone('horloge', true)}${echapper(t.horaires)}</span>`,
+      ].filter(Boolean);
+      return parts.length ? `<div class="infos-contact">${parts.join('')}</div>` : '';
     }
 
     function afficherListe(recadrer) {
@@ -706,23 +873,21 @@
 
       const aLocaliser = tirelires.filter((t) => !aPosition(t)).length;
       $('bandeauLocalisation').innerHTML = aLocaliser
-        ? `<div class="bandeau"><span>📍 <b>${pluriel(aLocaliser, 'tirelire')}</b> sans position sur la carte.</span><span class="espace"></span>
-           <button class="btn degrade petit" onclick="ouvrirLocalisation()">Localiser automatiquement</button></div>`
+        ? `<div class="bandeau">${icone('epingle')}<span><b>${pluriel(aLocaliser, 'tirelire')}</b> sans position sur la carte</span><span class="espace"></span>
+           <button class="btn petit" data-action="localiser">Localiser automatiquement</button></div>`
         : '';
       const sans = visibles.length - placees.length;
       $('compteur').textContent = pluriel(visibles.length, 'tirelire') + (sans ? ` · ${sans} sans position` : '');
       if (!visibles.length) {
-        $('liste').innerHTML = `<div class="vide">Aucune tirelire ne correspond.<br><br><button class="btn leger" data-action="reinitialiser">Effacer les filtres</button></div>`;
+        $('liste').innerHTML = `<div class="vide">Aucune tirelire ne correspond à ces filtres.<br><button class="btn secondaire" data-action="reinitialiser">Effacer les filtres</button></div>`;
         return;
       }
       $('liste').innerHTML = visibles.map((t) => `
-        <article class="fiche ${['refus', 'retiree'].includes(etat(t)) ? 'inactive' : ''}" style="--couleur:${couleur(t)}">
+        <article class="fiche ${['refus', 'retiree'].includes(etat(t)) ? 'inactive' : ''}" style="--c:${couleur(t)}">
           <div class="haut" data-action="centrer" data-id="${t.id}">
-            <div style="flex:1;min-width:0">
-              <div class="nom">${echapper(t.entreprise)}</div>
-              <div class="lieu">${echapper([t.ville, t.adresse].filter(Boolean).join(' · ')) || '&nbsp;'}</div>
-              ${contact(t)}
-            </div>
+            <div class="nom">${echapper(t.entreprise)}</div>
+            <div class="lieu">${echapper([t.ville, t.adresse].filter(Boolean).join(' · ')) || '&nbsp;'}</div>
+            ${contact(t)}
           </div>
           <div class="badges">${badges(t)}</div>
           ${t.notes ? `<div class="notes">${echapper(t.notes)}</div>` : ''}
@@ -743,7 +908,7 @@
       else afficherListe(recadrer);
     }
 
-    $('recherche').oninput = () => afficherListe(false);
+    $('recherche').oninput = retarder(() => afficherListe(false), 120);
     $('filtreStatut').onchange = () => { filtreTuile = ''; rafraichir(true); };
     $('filtreVille').onchange = () => rafraichir(true);
     $('tri').onchange = () => afficherListe(false);
@@ -755,7 +920,7 @@
       rafraichir(true);
     };
     document.addEventListener('click', (e) => {
-      const el = e.target.closest('#liste [data-action], #vueTournee [data-action]');
+      const el = e.target.closest('#vueListe [data-action], #vueTournee [data-action]');
       if (!el) return;
       if (el.tagName === 'A') e.preventDefault();
       action(el.dataset.action, Number(el.dataset.id));
@@ -769,6 +934,7 @@
         $('filtreStatut').value = 'actives';
         return rafraichir(true);
       }
+      if (nom === 'localiser') return ouvrirLocalisation();
       if (nom.startsWith('t-')) return actionTournee(nom, id);
       const t = tirelires.find((x) => x.id === id);
       if (!t) return;
@@ -777,7 +943,7 @@
           if (!aPosition(t)) return ouvrirFiche(t);
           carte.setView([t.lat, t.lng], 17);
           marqueurs[t.id] && marqueurs[t.id].openPopup();
-          if (window.innerWidth < 960) window.scrollTo({ top: 0, behavior: 'smooth' });
+          if (window.innerWidth < 980) window.scrollTo({ top: 0, behavior: 'smooth' });
         } else if (nom === 'modifier') {
           carte.closePopup();
           ouvrirFiche(t);
@@ -786,13 +952,13 @@
           await modifier(t, { dernier_vidage: aujourdhui() });
           carte.closePopup();
           rafraichir(false);
-          toast('💧 Vidage enregistré');
+          toast('Vidage enregistré');
         } else if (nom === 'poser') {
           if (!confirm(`La tirelire est posée chez « ${t.entreprise} » aujourd'hui ?`)) return;
           await modifier(t, { statut: 'en_place', date_pose: aujourdhui() });
           carte.closePopup();
           rafraichir(false);
-          toast('✅ Tirelire posée');
+          toast('Tirelire posée');
         }
       } catch (err) { alert(err.message); }
     }
@@ -850,26 +1016,27 @@
       return meilleur;
     }
 
+    const cleTournee = (t) => (etat(t) === 'en_place' ? urgence(t) : etat(t));
     function candidatsTournee() {
       const ville = $('tourneeVille').value;
       const inclus = [...document.querySelectorAll('#tourneeCoches input:checked')].map((c) => c.value);
-      const dansVille = tirelires.filter((t) => t.ville === ville && inclus.includes(etat(t) === 'en_place' ? urgence(t) : etat(t)));
+      const dansVille = tirelires.filter((t) => t.ville === ville && inclus.includes(cleTournee(t)));
       return { placees: dansVille.filter(aPosition), sans: dansVille.filter((t) => !aPosition(t)).length };
     }
 
     function majPreparation() {
       const ville = $('tourneeVille').value;
       const deLaVille = tirelires.filter((t) => t.ville === ville && aPosition(t));
-      const compte = (cle) => deLaVille.filter((t) => (etat(t) === 'en_place' ? urgence(t) : etat(t)) === cle).length;
+      const compte = (cle) => deLaVille.filter((t) => cleTournee(t) === cle).length;
       const coches = [...document.querySelectorAll('#tourneeCoches input')].reduce((m, c) => ({ ...m, [c.value]: c.checked }), { urgent: true, bientot: true, ok: false, a_poser: false });
       $('tourneeCoches').innerHTML = [
-        ['urgent', `<span class="point" style="background:${URGENCES.urgent.hex}"></span> À vider`],
-        ['bientot', `<span class="point" style="background:${URGENCES.bientot.hex}"></span> Bientôt`],
-        ['ok', `<span class="point" style="background:${URGENCES.ok.hex}"></span> OK (vidées récemment)`],
-        ['a_poser', '<span class="point creux"></span> À poser (repérages)'],
-      ].map(([cle, libelle]) => `<label><input type="checkbox" value="${cle}" ${coches[cle] ? 'checked' : ''}> ${libelle}<span class="nb">${compte(cle)}</span></label>`).join('');
+        ['urgent', '<span class="point" style="--c:var(--rouge)"></span>À vider'],
+        ['bientot', '<span class="point" style="--c:var(--orange)"></span>Bientôt'],
+        ['ok', '<span class="point" style="--c:var(--vert)"></span>OK, vidées récemment'],
+        ['a_poser', '<span class="point creux" style="--c:var(--primaire)"></span>À poser'],
+      ].map(([cle, libelle]) => `<label class="case"><input type="checkbox" value="${cle}" ${coches[cle] ? 'checked' : ''}>${libelle}<span class="nb">${compte(cle)}</span></label>`).join('');
       const { placees, sans } = candidatsTournee();
-      $('tourneeResume').textContent = `${pluriel(placees.length, 'arrêt')}` + (sans ? ` · ${sans} sans GPS non incluse${sans > 1 ? 's' : ''}` : '');
+      $('tourneeResume').textContent = `${pluriel(placees.length, 'arrêt')}` + (sans ? ` · ${sans} sans position, non incluse${sans > 1 ? 's' : ''}` : '');
       $('btnLancerTournee').disabled = !placees.length;
     }
 
@@ -894,9 +1061,9 @@
       bouton.disabled = true;
       let depart = null;
       if (e.target.depart.value === 'position') {
-        bouton.textContent = '⏳ Localisation…';
+        bouton.textContent = 'Localisation…';
         try { const p = await maPosition(); depart = { lat: p.lat, lng: p.lng }; }
-        catch { toast('Position indisponible : trajet calculé sans point de départ'); }
+        catch { toast('Position indisponible : trajet calculé sans point de départ', 'info'); }
       }
       bouton.textContent = 'Lancer la tournée';
       bouton.disabled = false;
@@ -924,16 +1091,16 @@
       calque.clearLayers();
       marqueurs = {};
       const trace = [tournee.depart, ...etapes].filter(Boolean).map((p) => [p.lat, p.lng]);
-      L.polyline(trace, { color: '#8a6bb1', weight: 4, opacity: .7, dashArray: '8 8' }).addTo(calque);
+      L.polyline(trace, { color: couleurCss('accent'), weight: 3.5, opacity: .75, dashArray: '6 8' }).addTo(calque);
       if (tournee.depart) {
-        L.marker([tournee.depart.lat, tournee.depart.lng], { icon: L.divIcon({ className: '', html: '<div class="depart"></div>', iconSize: [18, 18], iconAnchor: [9, 9] }) })
+        L.marker([tournee.depart.lat, tournee.depart.lng], { icon: L.divIcon({ className: '', html: '<div class="depart"></div>', iconSize: [16, 16], iconAnchor: [8, 8] }) })
           .bindPopup('<b>Départ</b>').addTo(calque);
       }
       etapes.forEach((t, i) => {
         const fait = !!tournee.faits[t.id];
-        const icone = L.divIcon({ className: '', html: `<div class="numero ${fait ? 'fait' : ''}" style="background:${couleur(t)}">${fait ? '✓' : i + 1}</div>`, iconSize: [30, 30], iconAnchor: [15, 15] });
-        marqueurs[t.id] = L.marker([t.lat, t.lng], { icon: icone, zIndexOffset: fait ? 0 : 1000 })
-          .bindPopup(`<div class="popup-nom">${i + 1}. ${echapper(t.entreprise)}</div><div class="popup-detail">${echapper(t.adresse || t.ville || '')}</div>`)
+        const icon = L.divIcon({ className: '', html: `<div class="numero ${fait ? 'fait' : ''}" style="--c:${couleur(t)}">${fait ? '✓' : i + 1}</div>`, iconSize: [30, 30], iconAnchor: [15, 15] });
+        marqueurs[t.id] = L.marker([t.lat, t.lng], { icon, zIndexOffset: fait ? 0 : 1000 })
+          .bindPopup(`<div class="popup-nom">${i + 1}. ${echapper(t.entreprise)}</div><div class="popup-detail" style="margin-bottom:0">${echapper(t.adresse || t.ville || '')}</div>`)
           .addTo(calque);
       });
       if (recadrer && trace.length) carte.fitBounds(trace, { padding: [30, 30], maxZoom: 16 });
@@ -948,39 +1115,40 @@
       const km = tournee.km < 10 ? tournee.km.toFixed(1).replace('.', ',') : Math.round(tournee.km);
       $('vueTournee').innerHTML = `
         <div class="panneau tete-tournee">
-          <h2>🧭 Tournée · ${echapper(tournee.ville)}</h2>
-          <div class="sous-titre">${nbFaits} / ${pluriel(etapes.length, 'arrêt')} faits · ≈ ${km} km à vol d'oiseau${tournee.depart ? ' depuis ta position' : ''}</div>
+          <h2>${icone('route')}Tournée · ${echapper(tournee.ville)}</h2>
+          <div class="sous-titre">${nbFaits} / ${pluriel(etapes.length, 'arrêt')} faits · environ ${km} km à vol d'oiseau${tournee.depart ? ' depuis ta position' : ''}</div>
           <div class="progression"><div style="width:${etapes.length ? (100 * nbFaits) / etapes.length : 0}%"></div></div>
-          <div class="actions" style="display:flex;flex-wrap:wrap;gap:8px">
-            ${prochains.length ? `<a class="btn degrade" target="_blank" rel="noopener" href="${lienProchains}">🗺️ Ouvrir ${prochains.length > 1 ? `les ${prochains.length} prochains arrêts` : 'le prochain arrêt'} dans Google Maps</a>` : ''}
-            <button class="btn leger" data-action="t-terminer">Terminer la tournée</button>
+          <div class="actions">
+            ${prochains.length ? `<a class="btn" target="_blank" rel="noopener" href="${lienProchains}">${icone('carte')}Ouvrir ${prochains.length > 1 ? `les ${prochains.length} prochains arrêts` : 'le prochain arrêt'} dans Google Maps</a>` : ''}
+            <button class="btn secondaire" data-action="t-terminer">Terminer la tournée</button>
           </div>
         </div>
-        ${!restantes.length ? `<div class="panneau vide">🎉 Tournée terminée !<br><br><button class="btn" data-action="t-terminer">Revenir à la liste</button></div>` : ''}
+        ${!restantes.length ? `<div class="panneau vide" style="margin-bottom:10px">Tournée terminée, bravo.<br><button class="btn" data-action="t-terminer">Revenir à la liste</button></div>` : ''}
         ${etapes.map((t, i) => {
           const fait = tournee.faits[t.id];
           const e = etat(t);
           return `
-          <article class="fiche ${fait ? 'etape faite' : 'etape'}" style="--couleur:${couleur(t)}">
-            <div class="numero ${fait ? 'fait' : ''}" style="background:${couleur(t)}">${fait ? '✓' : i + 1}</div>
+          <article class="fiche etape ${fait ? 'faite' : ''}" style="--c:${couleur(t)}">
+            <div class="numero ${fait ? 'fait' : ''}">${fait ? '✓' : i + 1}</div>
             <div style="flex:1;min-width:0">
               <div class="haut" data-action="t-centrer" data-id="${t.id}">
-                <div style="flex:1;min-width:0">
-                  <div class="nom">${echapper(t.entreprise)}</div>
-                  <div class="lieu">${echapper(t.adresse || t.ville || '')}</div>
-                  ${fait ? '' : contact(t)}
-                </div>
+                <div class="nom">${echapper(t.entreprise)}</div>
+                <div class="lieu">${echapper(t.adresse || t.ville || '')}</div>
+                ${fait ? '' : contact(t)}
               </div>
               ${fait
-                ? `<div class="lieu" style="margin-top:6px">${{ videe: '💧 Vidée', posee: '✅ Posée', passee: '⏭️ Passée' }[fait]} · <a href="#" data-action="t-annuler" data-id="${t.id}">annuler</a></div>`
+                ? `<div class="fait-libelle">${{ videe: 'Vidée', posee: 'Posée', passee: 'Passée' }[fait]}
+                     <button class="btn discret petit" data-action="t-annuler" data-id="${t.id}">${icone('annuler', true)}Annuler</button></div>`
                 : `<div class="badges">${badges(t)}</div>
                    ${t.notes ? `<div class="notes">${echapper(t.notes)}</div>` : ''}
                    <div class="actions">
-                     ${e === 'a_poser' ? `<button class="btn vert petit" data-action="t-poser" data-id="${t.id}">✅ Posée</button>` : `<button class="btn petit" data-action="t-vider" data-id="${t.id}">💧 Vidée</button>`}
-                     <button class="btn leger petit" data-action="t-passer" data-id="${t.id}">⏭️ Passer</button>
-                     <a class="btn leger petit" target="_blank" rel="noopener" href="${lienItineraire(t)}">🧭 Y aller</a>
-                     ${t.contact_tel ? `<a class="btn leger petit" href="${lienTel(t.contact_tel)}">📞</a>` : ''}
-                     <button class="btn leger petit" data-action="modifier" data-id="${t.id}">✏️</button>
+                     ${e === 'a_poser'
+                       ? `<button class="btn succes petit" data-action="t-poser" data-id="${t.id}">${icone('check', true)}Posée</button>`
+                       : `<button class="btn petit" data-action="t-vider" data-id="${t.id}">${icone('goutte', true)}Vidée</button>`}
+                     <button class="btn secondaire petit" data-action="t-passer" data-id="${t.id}">${icone('passer', true)}Passer</button>
+                     <a class="btn secondaire petit carre" target="_blank" rel="noopener" href="${lienItineraire(t)}" title="Itinéraire" aria-label="Itinéraire">${icone('naviguer', true)}</a>
+                     ${t.contact_tel ? `<a class="btn secondaire petit carre" href="${lienTel(t.contact_tel)}" title="Appeler" aria-label="Appeler">${icone('tel', true)}</a>` : ''}
+                     <button class="btn secondaire petit carre" data-action="modifier" data-id="${t.id}" title="Modifier" aria-label="Modifier">${icone('crayon', true)}</button>
                    </div>`}
             </div>
           </article>`;
@@ -1001,11 +1169,11 @@
         if (nom === 't-centrer') {
           carte.setView([t.lat, t.lng], 17);
           marqueurs[t.id] && marqueurs[t.id].openPopup();
-          if (window.innerWidth < 960) window.scrollTo({ top: 0, behavior: 'smooth' });
+          if (window.innerWidth < 980) window.scrollTo({ top: 0, behavior: 'smooth' });
           return;
         }
-        if (nom === 't-vider') { await modifier(t, { dernier_vidage: aujourdhui() }); tournee.faits[id] = 'videe'; toast('💧 Vidage enregistré'); }
-        if (nom === 't-poser') { await modifier(t, { statut: 'en_place', date_pose: aujourdhui() }); tournee.faits[id] = 'posee'; toast('✅ Tirelire posée'); }
+        if (nom === 't-vider') { await modifier(t, { dernier_vidage: aujourdhui() }); tournee.faits[id] = 'videe'; toast('Vidage enregistré'); }
+        if (nom === 't-poser') { await modifier(t, { statut: 'en_place', date_pose: aujourdhui() }); tournee.faits[id] = 'posee'; toast('Tirelire posée'); }
         if (nom === 't-passer') tournee.faits[id] = 'passee';
         if (nom === 't-annuler') delete tournee.faits[id];
         sauverTournee();
@@ -1014,26 +1182,30 @@
     }
 
     // ================= Fenêtres =================
+    let elementAvantFenetre = null;
     function ouvrirFenetre(id) {
+      elementAvantFenetre = document.activeElement;
       $(id).classList.remove('cache');
       document.body.style.overflow = 'hidden';
     }
     function fermerFenetres() {
       document.querySelectorAll('.voile').forEach((v) => v.classList.add('cache'));
       document.body.style.overflow = '';
+      if (elementAvantFenetre && elementAvantFenetre.focus) elementAvantFenetre.focus({ preventScroll: true });
     }
     document.querySelectorAll('[data-fermer]').forEach((b) => (b.onclick = fermerFenetres));
     document.querySelectorAll('.voile').forEach((v) => (v.onmousedown = (e) => { if (e.target === v) fermerFenetres(); }));
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape') fermerFenetres(); });
 
     // ================= Fenêtre ajouter / modifier =================
+    const TEXTE_POSITION = 'Touche la carte pour placer le point, puis glisse-le pour l\'ajuster.';
     function definirPosition(lat, lng, centrer, parUtilisateur = true) {
       positionFiche = { lat, lng };
       if (parUtilisateur) positionModifiee = true;
       if (marqueurFiche) marqueurFiche.setLatLng([lat, lng]);
       else {
-        const icone = L.divIcon({ className: '', html: '<div class="repere"></div>', iconSize: [26, 26], iconAnchor: [13, 30] });
-        marqueurFiche = L.marker([lat, lng], { draggable: true, icon: icone }).addTo(miniCarte);
+        const icon = L.divIcon({ className: '', html: '<div class="repere"></div>', iconSize: [26, 26], iconAnchor: [13, 30] });
+        marqueurFiche = L.marker([lat, lng], { draggable: true, icon }).addTo(miniCarte);
         marqueurFiche.on('dragend', () => {
           const p = marqueurFiche.getLatLng();
           definirPosition(p.lat, p.lng, false);
@@ -1041,9 +1213,9 @@
         });
       }
       if (centrer) miniCarte.setView([lat, lng], 17);
-      $('positionInfo').textContent = ficheEnCours && ficheEnCours.position_approx && !positionModifiee
-        ? '⚠️ Position approximative : place le point précisément (📍 ma position, ou glisse le repère).'
-        : `✅ Point placé (${lat.toFixed(5)}, ${lng.toFixed(5)}) — glisse-le pour ajuster.`;
+      $('positionInfo').innerHTML = ficheEnCours && ficheEnCours.position_approx && !positionModifiee
+        ? `<span style="color:var(--orange)">Position approximative : place le point précisément (ma position, ou glisse le repère).</span>`
+        : 'Point placé. Glisse-le pour l\'ajuster.';
       $('btnRetirerPosition').classList.remove('cache');
     }
 
@@ -1051,7 +1223,7 @@
       positionFiche = null;
       positionModifiee = true;
       if (marqueurFiche) { marqueurFiche.remove(); marqueurFiche = null; }
-      $('positionInfo').textContent = 'Touche la carte pour placer le point (tu peux ensuite le déplacer).';
+      $('positionInfo').textContent = TEXTE_POSITION;
       $('btnRetirerPosition').classList.add('cache');
     }
     $('btnRetirerPosition').onclick = retirerPosition;
@@ -1095,9 +1267,10 @@
       f.notes.value = t ? t.notes || '' : '';
       majChampsSelonStatut();
       ouvrirFenetre('fenetreFiche');
+      f.querySelector('.corps').scrollTop = 0;
 
       if (!miniCarte) {
-        miniCarte = L.map('miniCarte');
+        miniCarte = L.map('miniCarte', { zoomSnap: .5 });
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap', maxZoom: 19 }).addTo(miniCarte);
         miniCarte.on('click', (e) => { definirPosition(e.latlng.lat, e.latlng.lng, false); completerAdresse(e.latlng.lat, e.latlng.lng, false); });
       }
@@ -1107,24 +1280,25 @@
         miniCarte.invalidateSize();
         if (t && aPosition(t)) definirPosition(t.lat, t.lng, true, false);
         else miniCarte.setView(carte.getCenter(), Math.max(carte.getZoom(), 12));
-      }, 50);
-      if (!t) setTimeout(() => f.entreprise.focus(), 100);
+      }, 60);
+      if (!t && window.innerWidth >= 700) setTimeout(() => f.entreprise.focus(), 120);
     }
     $('btnAjouter').onclick = () => ouvrirFiche(null);
     $('btnVidageAujourdhui').onclick = () => ($('formFiche').dernier_vidage.value = aujourdhui());
 
     $('btnMaPosition').onclick = async () => {
       const bouton = $('btnMaPosition');
+      const texte = bouton.querySelector('span');
       bouton.disabled = true;
-      bouton.textContent = '⏳ Localisation…';
+      texte.textContent = 'Localisation…';
       try {
         const p = await maPosition();
         definirPosition(p.lat, p.lng, true);
         await completerAdresse(p.lat, p.lng, true);
-        toast(`📍 Position trouvée (précision ~${Math.round(p.precision)} m)`);
+        toast(`Position trouvée, précision d'environ ${Math.round(p.precision)} m`, 'viseur');
       } catch (err) { alert(err.message); }
       bouton.disabled = false;
-      bouton.textContent = '📍 Utiliser ma position';
+      texte.textContent = 'Ma position';
     };
 
     $('btnDepuisAdresse').onclick = async () => {
@@ -1160,11 +1334,11 @@
       try {
         if (ficheEnCours) {
           await modifier(ficheEnCours, donnees);
-          toast('✅ Modifications enregistrées');
+          toast('Modifications enregistrées');
         } else {
           const [nouvelle] = await api('POST', 'tirelires', donnees);
           tirelires.unshift(nouvelle);
-          toast('✅ Tirelire ajoutée');
+          toast('Tirelire ajoutée');
         }
         fermerFenetres();
         rafraichir(false);
@@ -1177,14 +1351,14 @@
 
     $('btnSupprimer').onclick = async () => {
       const t = ficheEnCours;
-      if (!t || !confirm(`Supprimer définitivement « ${t.entreprise} » ?\n\nAstuce : pour garder l'historique, choisis plutôt le statut « Retirée ».`)) return;
+      if (!t || !confirm(`Supprimer définitivement « ${t.entreprise} » ?\n\nPour garder son historique, choisis plutôt le statut « Retirée ».`)) return;
       try {
         await api('DELETE', `tirelires?id=${t.id}`);
         tirelires = tirelires.filter((x) => x.id !== t.id);
         if (tournee) { tournee.ordre = tournee.ordre.filter((x) => x !== t.id); if (!tournee.ordre.length) tournee = null; sauverTournee(); }
         fermerFenetres();
         rafraichir(false);
-        toast('🗑️ Tirelire supprimée');
+        toast('Tirelire supprimée', 'corbeille');
       } catch (err) { $('erreurFiche').textContent = err.message; }
     };
 
@@ -1192,16 +1366,19 @@
     function apercuSeuils() {
       const o = Number($('champOrange').value), r = Number($('champRouge').value);
       $('apercuSeuils').innerHTML = `
-        <div><span class="point" style="background:${URGENCES.ok.hex}"></span>Vert : vidée il y a moins de ${o || '?'} mois</div>
-        <div><span class="point" style="background:${URGENCES.bientot.hex}"></span>Orange : entre ${o || '?'} et ${r || '?'} mois</div>
-        <div><span class="point" style="background:${URGENCES.urgent.hex}"></span>Rouge : plus de ${r || '?'} mois</div>`;
+        <div><span class="point" style="--c:var(--vert)"></span>Vert : vidée il y a moins de ${o || '?'} mois</div>
+        <div><span class="point" style="--c:var(--orange)"></span>Orange : entre ${o || '?'} et ${r || '?'} mois</div>
+        <div><span class="point" style="--c:var(--rouge)"></span>Rouge : plus de ${r || '?'} mois</div>`;
     }
     $('champOrange').oninput = apercuSeuils;
     $('champRouge').oninput = apercuSeuils;
+    // Le thème s'applique tout de suite, sans attendre « Enregistrer »
+    $('choixTheme').onchange = (e) => appliquerTheme(e.target.value);
 
     $('btnParametres').onclick = () => {
       $('champOrange').value = seuils.orange;
       $('champRouge').value = seuils.rouge;
+      $('formParametres').theme.value = choixTheme();
       $('erreurParametres').textContent = '';
       apercuSeuils();
       ouvrirFenetre('fenetreParametres');
@@ -1212,14 +1389,17 @@
       const orange = Number($('champOrange').value), rouge = Number($('champRouge').value);
       if (!(orange > 0 && rouge > orange)) { $('erreurParametres').textContent = 'Le seuil rouge doit être plus grand que le seuil orange'; return; }
       try {
-        const res = await api('PUT', 'parametres', { seuil_orange_mois: orange, seuil_rouge_mois: rouge });
-        seuils = { orange: res.seuil_orange_mois, rouge: res.seuil_rouge_mois };
+        if (orange !== seuils.orange || rouge !== seuils.rouge) {
+          const res = await api('PUT', 'parametres', { seuil_orange_mois: orange, seuil_rouge_mois: rouge });
+          seuils = { orange: res.seuil_orange_mois, rouge: res.seuil_rouge_mois };
+        }
         fermerFenetres();
         rafraichir(false);
-        toast('✅ Paramètres enregistrés');
+        toast('Paramètres enregistrés');
       } catch (err) { $('erreurParametres').textContent = err.message; }
     };
 
+    $('positionInfo').textContent = TEXTE_POSITION;
     // Reconnexion automatique si le code est déjà mémorisé
     if (code) demarrer().catch(deconnexion);
   </script>
