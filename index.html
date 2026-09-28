@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
   <title>Tirelires Rengo</title>
   <meta name="theme-color" content="#f5f6f8">
   <meta name="color-scheme" content="light dark">
@@ -64,6 +64,9 @@
     /* ================= Base ================= */
     * { box-sizing: border-box; }
     html, body { margin: 0; }
+    /* Page fixe : pas de zoom (pince, double-tap), pas de glissement horizontal, pas de rebond en haut.
+       La carte garde son propre zoom (Leaflet gère ses gestes). */
+    html, body { overflow-x: clip; overscroll-behavior: none; touch-action: pan-y; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
     body { font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; font-size: 15px; line-height: 1.45; color: var(--texte); background: var(--fond); -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent; }
     h1, h2, h3, .titre-police { font-family: Poppins, Inter, system-ui, sans-serif; letter-spacing: -.01em; }
     button, input, select, textarea { font: inherit; color: inherit; }
@@ -94,7 +97,7 @@
     .btn.carre { width: 40px; padding: 0; }
     .btn.petit.carre { width: 34px; }
     .btn:disabled { opacity: .55; cursor: default; transform: none; }
-    input, select, textarea { width: 100%; min-height: 42px; padding: 9px 12px; border: 1px solid var(--bord); border-radius: 10px; background: var(--surface); outline: none; transition: border-color .15s, box-shadow .15s; }
+    input, select, textarea { width: 100%; min-height: 42px; padding: 9px 12px; font-size: 16px; border: 1px solid var(--bord); border-radius: 10px; background: var(--surface); outline: none; transition: border-color .15s, box-shadow .15s; }
     textarea { resize: vertical; min-height: 76px; }
     select { appearance: none; padding-right: 34px; cursor: pointer; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238b93a0' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; }
     input:focus, select:focus, textarea:focus { border-color: var(--primaire); box-shadow: 0 0 0 3px color-mix(in srgb, var(--primaire) 20%, transparent); }
@@ -114,6 +117,7 @@
 
     /* ================= Connexion ================= */
     #connexion { min-height: 100vh; min-height: 100dvh; display: grid; place-items: center; padding: 24px 16px; }
+    @media (max-width: 560px) { #connexion { place-items: start center; padding-top: 10vh; } }
     .boite-connexion { width: 100%; max-width: 360px; text-align: center; }
     .boite-connexion img { width: 210px; max-width: 75%; margin-bottom: 28px; }
     .boite-connexion .panneau { padding: 24px 20px; text-align: left; }
@@ -122,16 +126,17 @@
     .boite-connexion .btn { width: 100%; margin-top: 12px; height: 44px; }
 
     /* ================= En-tête ================= */
-    header { position: sticky; top: 0; z-index: 1000; background: color-mix(in srgb, var(--fond) 85%, transparent); backdrop-filter: saturate(1.4) blur(10px); -webkit-backdrop-filter: saturate(1.4) blur(10px); border-bottom: 1px solid var(--bord); padding-top: env(safe-area-inset-top); }
+    header { position: sticky; top: 0; z-index: 1000; background: color-mix(in srgb, var(--fond) 85%, transparent); backdrop-filter: saturate(1.4) blur(10px); -webkit-backdrop-filter: saturate(1.4) blur(10px); border-bottom: 1px solid var(--bord); }
     .entete { max-width: 1320px; margin: 0 auto; height: 60px; padding: 0 16px; display: flex; align-items: center; gap: 8px; }
     .entete img { height: 34px; width: auto; min-width: 0; max-width: 150px; object-fit: contain; object-position: left center; display: block; flex-shrink: 1; }
     .entete .btn { flex-shrink: 0; }
     .entete .titre { font-family: Poppins, sans-serif; font-weight: 600; font-size: 15px; color: var(--doux); padding-left: 12px; margin-left: 4px; border-left: 1px solid var(--bord-fort); }
     .entete .espace { flex: 1; }
-    @media (max-width: 560px) { .entete .titre { display: none; } .entete img { height: 30px; } .masque-mobile { display: none; } .entete .btn.avec-texte { width: 40px; padding: 0; } }
+    @media (max-width: 560px) { .entete { height: 54px; padding: 0 12px; gap: 6px; } .entete .titre { display: none; } .entete img { height: 28px; } .masque-mobile { display: none; } .entete .btn.avec-texte { width: 40px; padding: 0; } }
 
     /* ================= Mise en page ================= */
-    main { max-width: 1320px; margin: 0 auto; padding: 16px 16px calc(32px + env(safe-area-inset-bottom)); }
+    main { max-width: 1320px; margin: 0 auto; padding: 16px 16px 32px; }
+    @media (max-width: 560px) { main { padding: 12px 12px 28px; } }
     .grille { display: grid; gap: 16px; }
     @media (min-width: 980px) {
       .grille { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); align-items: start; gap: 20px; }
@@ -182,7 +187,7 @@
     @media (max-width: 640px) { .outils { grid-template-columns: 1fr 1fr; } .outils .champ-icone { grid-column: span 2; } }
     .barre-liste { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 2px 2px 8px; min-height: 34px; }
     .compteur { font-size: 13px; color: var(--doux); }
-    .tri { display: flex; align-items: center; gap: 4px; font-size: 13px; color: var(--doux); }
+    .tri { display: flex; align-items: center; gap: 4px; font-size: 14px; color: var(--doux); }
     .tri select { width: auto; min-height: 34px; height: 34px; padding: 0 28px 0 8px; border: 0; background-color: transparent; color: var(--texte); font-weight: 500; background-position: right 8px center; }
     .tri select:focus { box-shadow: none; }
     .bandeau { display: flex; align-items: center; gap: 12px; padding: 12px 14px; margin-bottom: 10px; background: var(--primaire-doux); border: 1px solid color-mix(in srgb, var(--primaire) 25%, transparent); border-radius: 12px; font-size: 14px; }
@@ -1399,6 +1404,11 @@
         toast('Paramètres enregistrés');
       } catch (err) { $('erreurParametres').textContent = err.message; }
     };
+
+    // Safari (iPhone) ignore parfois le blocage du zoom : on bloque aussi le geste de pince, sauf sur les cartes
+    ['gesturestart', 'gesturechange'].forEach((type) => document.addEventListener(type, (e) => {
+      if (!e.target.closest || !e.target.closest('.leaflet-container')) e.preventDefault();
+    }, { passive: false }));
 
     $('positionInfo').textContent = TEXTE_POSITION;
     // Reconnexion automatique si le code est déjà mémorisé
